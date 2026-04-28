@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Scale</title>
+  <style>
+    :root {
+      --bg: #f0f2ff;
+      --card: #ffffff;
+      --primary: #5563de;
+      --p2: #8b96f7;
+      --success: #2e9e4f;
+      --error: #d93025;
+      --warn: #f59e0b;
+      --text: #1a1a2e;
+      --muted: #7a7a9a;
+      --border: #e0e4f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 12px 48px;
+      color: var(--text);
+    }
+    .hidden { display: none !important; }
+
+    /* ── HOME ── */
+    #homeScreen { width: 100%; max-width: 560px; text-align: center; padding-top: 24px; }
+    .home-logo  { font-size: 3rem; }
+    .home-title {
+      font-size: 2.2rem; font-weight: 900; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--primary), #e85d8a);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin: 6px 0 4px;
+    }
+    .home-sub  { color: var(--muted); font-size: 0.88rem; line-height: 1.55; margin-bottom: 28px; }
+    .grade-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--muted); margin-bottom: 12px; }
+    .grade-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%;
+    }
+    .grade-card {
+      background: white; border: 2px solid var(--border); border-radius: 16px;
+      padding: 16px 8px; cursor: pointer; transition: all 0.18s; text-align: center;
+    }
+    .grade-card:hover {
+      border-color: var(--primary); transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(85,99,222,0.18);
+    }
+    .g-emoji { font-size: 1.5rem; }
+    .g-name  { font-weight: 800; font-size: 0.88rem; margin-top: 4px; }
+    .g-desc  { font-size: 0.66rem; color: var(--muted); margin-top: 3px; line-height: 1.3; }
+
+    /* ── GAME ── */
+    #gameScreen { width: 100%; max-width: 660px; display: flex; flex-direction: column; align-items: center; }
+
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      width: 100%; margin-bottom: 14px; gap: 10px;
+    }
+    .btn-back {
+      background: white; border: 2px solid var(--border); border-radius: 10px;
+      padding: 8px 14px; font-size: 0.84rem; font-weight: 700;
+      cursor: pointer; color: var(--text); transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-back:hover { border-color: var(--primary); color: var(--primary); }
+
+    .round-info { font-size: 0.85rem; font-weight: 600; color: var(--muted); text-align: center; }
+    .round-info strong { color: var(--primary); }
+
+    /* Circular timer */
+    .timer-svg { display: block; }
+    .timer-ring { transition: stroke-dashoffset 1s linear, stroke 0.4s; }
+
+    .theme-tag {
+      background: linear-gradient(135deg, var(--primary), var(--p2));
+      color: white; border-radius: 16px; padding: 5px 15px;
+      font-size: 0.78rem; font-weight: 700; letter-spacing: 0.4px;
+      margin-bottom: 12px; text-transform: uppercase;
+    }
+
+    .card {
+      background: var(--card); border-radius: 20px; padding: 22px;
+      width: 100%; box-shadow: 0 4px 28px rgba(85,99,222,0.10);
+    }
+
+    .instruction {
+      font-size: 0.82rem; color: var(--muted); text-align: center;
+      margin-bottom: 16px; line-height: 1.55;
+    }
+
+    /* Scale */
+    .scale-ends {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 8px;
+    }
+    .end-tag { padding: 5px 13px; border-radius: 16px; font-weight: 700; font-size: 0.85rem; white-space: nowrap; }
+    .end-tag.left  { background: #dff0ff; color: #1565c0; }
+    .end-tag.right { background: #fde8e0; color: #b83200; }
+    .scale-bar {
+      height: 5px; border-radius: 3px; margin: 0 4px 14px;
+      background: linear-gradient(to right, #3f92d2, #e85d2f);
+    }
+
+    /* Slots */
+    .slots { display: grid; grid-template-columns: repeat(5,1fr); gap: 7px; margin-bottom: 20px; }
+    .slot {
+      min-height: 68px; border: 2px dashed var(--border); border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      background: #fafbff; position: relative;
+      transition: border-color 0.15s, background 0.15s, transform 0.15s;
+    }
+    .slot .snum {
+      position: absolute; top: 3px; left: 50%; transform: translateX(-50%);
+      font-size: 0.58rem; color: #d0d4f0; font-weight: 700; pointer-events: none;
+    }
+    .slot.over    { border-color: var(--primary); background: #eef0ff; transform: scale(1.05); }
+    .slot.filled  { border-style: solid; border-color: #c5cae9; }
+    .slot.wrong   { border-color: var(--error) !important; background: #fff0ef !important; animation: shake 0.38s; }
+    .slot.correct { border-color: var(--success) !important; background: #f0faf3 !important; }
+    .slot.hint-hi { animation: hintPulse 0.7s ease 3; border-style: solid !important; }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-5px); }
+      75%      { transform: translateX(5px); }
+    }
+    @keyframes hintPulse {
+      0%,100% { border-color: var(--border);  box-shadow: none; }
+      50%      { border-color: var(--warn);    box-shadow: 0 0 0 4px rgba(245,158,11,0.28); }
+    }
+    @keyframes pop {
+      0%   { transform: scale(0.6); opacity: 0.2; }
+      70%  { transform: scale(1.1); }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+
+    /* Chips in slots */
+    .chip {
+      width: calc(100% - 8px); padding: 9px 4px; border-radius: 9px;
+      font-size: 0.8rem; font-weight: 700; text-align: center; cursor: grab;
+      user-select: none;
+      background: linear-gradient(135deg, var(--primary), var(--p2));
+      color: white; line-height: 1.2; transition: opacity 0.15s;
+    }
+    .chip:active    { cursor: grabbing; }
+    .chip.dragging  { opacity: 0.35; }
+    .chip.auto-pop  { animation: pop 0.45s ease; }
+
+    /* Bank */
+    .bank-label {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--muted); margin-bottom: 8px;
+    }
+    .bank {
+      display: flex; flex-wrap: wrap; gap: 8px; min-height: 52px;
+      padding: 10px; background: #fafbff; border-radius: 12px;
+      border: 2px dashed var(--border); transition: border-color 0.15s, background 0.15s;
+    }
+    .bank.over { border-color: var(--primary); background: #eef0ff; }
+    .bank-chip {
+      padding: 9px 16px; border-radius: 10px; font-size: 0.88rem; font-weight: 700;
+      cursor: grab; user-select: none;
+      background: linear-gradient(135deg, var(--primary), var(--p2));
+      color: white; border: 2px solid transparent;
+      box-shadow: 0 2px 8px rgba(85,99,222,0.24);
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    }
+    .bank-chip:hover   { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(85,99,222,0.36); }
+    .bank-chip:active  { cursor: grabbing; }
+    .bank-chip.dragging { opacity: 0.35; }
+    .bank-chip.selected { border-color: var(--warn); box-shadow: 0 0 0 3px rgba(245,158,11,0.28); }
+
+    /* Controls */
+    .controls { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+    .btn {
+      padding: 11px 22px; border: none; border-radius: 12px;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .btn:disabled { opacity: 0.42; cursor: not-allowed; transform: none !important; }
+    .btn-hint  { background: #fff8e7; color: #92610a; border: 2px solid #f6d860; }
+    .btn-hint:hover:not(:disabled) { background: #fef3c7; }
+    .btn-check { background: linear-gradient(135deg,var(--primary),var(--p2)); color: white; box-shadow: 0 4px 14px rgba(85,99,222,0.34); }
+    .btn-next  { background: linear-gradient(135deg,var(--success),#5cbf78); color: white; box-shadow: 0 4px 14px rgba(46,158,79,0.34); }
+
+    /* Result */
+    .result { margin-top: 14px; padding: 11px 14px; border-radius: 11px; font-weight: 600; font-size: 0.88rem; text-align: center; display: none; }
+    .result.show    { display: block; }
+    .result.success { background: #f0faf3; color: #1b5e20; }
+    .result.error   { background: #fff0ef; color: #b71c1c; }
+    .result.timeup  { background: #fffde7; color: #7c5e00; }
+    .result.info    { background: #eef0ff; color: #2c35a8; }
+
+    /* Grade Complete */
+    #gradeComplete { text-align: center; padding: 28px 12px; }
+    .gc-trophy { font-size: 3.5rem; }
+    .gc-title  { font-size: 1.6rem; font-weight: 900; margin: 8px 0 4px; }
+    .gc-score  { font-size: 3rem; font-weight: 900; color: var(--primary); margin: 10px 0; }
+    .gc-msg    { color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 22px; }
+    .gc-btns   { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .btn-ghost {
+      background: white; border: 2px solid var(--border); color: var(--text);
+      padding: 11px 22px; border-radius: 12px; font-size: 0.9rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+
+    @media (max-width: 480px) {
+      .grade-grid { grid-template-columns: repeat(2,1fr); }
+      .card { padding: 14px 10px; }
+      .chip { font-size: 0.72rem; padding: 8px 3px; }
+      .slots { gap: 5px; }
+      .slot { min-height: 58px; }
+      .bank-chip { padding: 8px 12px; font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="homeScreen">
+  <div class="home-logo">⚖️</div>
+  <h1 class="home-title">Word Scale</h1>
+  <p class="home-sub">Words vary in intensity.<br>Drag and drop them to show how strong or weak each one is.</p>
+  <p class="grade-label">Choose your grade</p>
+  <div class="grade-grid" id="gradeGrid"></div>
+</div>
+
+<!-- GAME -->
+<div id="gameScreen" class="hidden">
+  <div class="topbar">
+    <button class="btn-back" onclick="confirmBack()">← Back</button>
+    <div class="round-info">
+      Grade <strong id="gradeLabel">3</strong>&nbsp;·&nbsp;Round <strong id="roundLabel">1</strong> / 3
+    </div>
+    <svg class="timer-svg" width="52" height="52" viewBox="0 0 52 52">
+      <circle cx="26" cy="26" r="20" fill="none" stroke="#e8ebff" stroke-width="4"/>
+      <circle cx="26" cy="26" r="20" fill="none" stroke="var(--primary)" stroke-width="4"
+        stroke-dasharray="125.7" stroke-dashoffset="0" stroke-linecap="round"
+        transform="rotate(-90 26 26)" class="timer-ring" id="timerRing"/>
+      <text x="26" y="31" text-anchor="middle" font-size="13" font-weight="800"
+        fill="var(--text)" id="timerText">40</text>
+    </svg>
+  </div>
+
+  <div class="theme-tag" id="themeTag">Theme</div>
+
+  <div class="card">
+    <!-- Game content -->
+    <div id="gameContent">
+      <p class="instruction">
+        Look at the words on either end of the scale.<br>
+        Drag each word from the bank and place it where it fits — from least to most intense.
+      </p>
+
+      <div class="scale-ends">
+        <div class="end-tag left"  id="leftEnd">—</div>
+        <div class="end-tag right" id="rightEnd">—</div>
+      </div>
+      <div class="scale-bar"></div>
+
+      <div class="slots" id="slots"></div>
+
+      <div class="bank-label">Word Bank</div>
+      <div class="bank" id="bank"></div>
+
+      <div class="controls">
+        <button class="btn btn-hint"  id="hintBtn"  onclick="giveHint()">💡 Hint</button>
+        <button class="btn btn-check" id="checkBtn" onclick="checkAnswers()">Check ✓</button>
+        <button class="btn btn-next"  id="nextBtn"  onclick="nextRound()" style="display:none">Next →</button>
+      </div>
+      <div class="result" id="result"></div>
+    </div>
+
+    <!-- Grade complete -->
+    <div id="gradeComplete" class="hidden">
+      <div class="gc-trophy" id="gcTrophy">🏆</div>
+      <div class="gc-title"  id="gcTitle">Grade Complete!</div>
+      <div class="gc-score"  id="gcScore">0 / 15</div>
+      <p   class="gc-msg"   id="gcMsg"></p>
+      <div class="gc-btns">
+        <button class="btn-ghost" onclick="goHome()">🏠 Home</button>
+        <button class="btn btn-check" onclick="playAgain()">▶ Play Again</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const GRADES = {
+  3: {
+    emoji:"🌱", desc:"Simple everyday words",
+    rounds:[
+      { name:"Size",        emoji:"📏", left:"Tiny",    right:"Enormous",
+        words:["Small","Little","Medium","Large","Huge"] },
+      { name:"Feelings",    emoji:"😊", left:"Sad",     right:"Happy",
+        words:["Unhappy","Okay","Good","Great","Wonderful"] },
+      { name:"Temperature", emoji:"🌡️", left:"Cold",    right:"Hot",
+        words:["Chilly","Cool","Warm","Toasty","Boiling"] }
+    ]
+  },
+  4: {
+    emoji:"🌿", desc:"Action & sense words",
+    rounds:[
+      { name:"Speed",  emoji:"⚡",  left:"Slow",  right:"Fast",
+        words:["Sluggish","Leisurely","Moderate","Quick","Rapid"] },
+      { name:"Sound",  emoji:"🔊",  left:"Quiet", right:"Loud",
+        words:["Hushed","Soft","Audible","Noisy","Booming"] },
+      { name:"Hunger", emoji:"🍽️", left:"Full",  right:"Starving",
+        words:["Satisfied","Peckish","Hungry","Famished","Ravenous"] }
+    ]
+  },
+  5: {
+    emoji:"🌳", desc:"Emotional vocabulary",
+    rounds:[
+      { name:"Anger", emoji:"😤", left:"Calm",    right:"Furious",
+        words:["Annoyed","Irritated","Upset","Angry","Livid"] },
+      { name:"Fear",  emoji:"😨", left:"Nervous", right:"Terrified",
+        words:["Uneasy","Worried","Anxious","Scared","Petrified"] },
+      { name:"Light", emoji:"💡", left:"Dark",    right:"Blinding",
+        words:["Dim","Shadowy","Soft","Bright","Glaring"] }
+    ]
+  },
+  6: {
+    emoji:"🌟", desc:"Nuanced emotion words",
+    rounds:[
+      { name:"Happiness",  emoji:"😊", left:"Content",  right:"Ecstatic",
+        words:["Pleased","Happy","Joyful","Elated","Euphoric"] },
+      { name:"Importance", emoji:"⚠️", left:"Trivial",  right:"Critical",
+        words:["Minor","Moderate","Significant","Important","Vital"] },
+      { name:"Dislike",    emoji:"😒", left:"Tolerate", right:"Despise",
+        words:["Dislike","Resent","Detest","Loathe","Abhor"] }
+    ]
+  },
+  7: {
+    emoji:"💫", desc:"Abstract & analytical words",
+    rounds:[
+      { name:"Certainty",    emoji:"🎯", left:"Doubtful", right:"Certain",
+        words:["Skeptical","Unsure","Probable","Confident","Convinced"] },
+      { name:"Intelligence", emoji:"🧠", left:"Average",  right:"Brilliant",
+        words:["Capable","Clever","Smart","Intelligent","Exceptional"] },
+      { name:"Approval",     emoji:"👏", left:"Accept",   right:"Revere",
+        words:["Appreciate","Admire","Respect","Honour","Idolise"] }
+    ]
+  },
+  8: {
+    emoji:"🔥", desc:"Sophisticated vocabulary",
+    rounds:[
+      { name:"Surprise", emoji:"😲", left:"Ordinary",    right:"Miraculous",
+        words:["Uncommon","Unusual","Remarkable","Extraordinary","Astonishing"] },
+      { name:"Praise",   emoji:"🏆", left:"Acknowledge", right:"Glorify",
+        words:["Commend","Applaud","Praise","Extol","Exalt"] },
+      { name:"Pain",     emoji:"😣", left:"Mild",        right:"Agonising",
+        words:["Uncomfortable","Sore","Painful","Intense","Excruciating"] }
+    ]
+  },
+  9: {
+    emoji:"⚡", desc:"Advanced literary vocabulary",
+    rounds:[
+      { name:"Sadness", emoji:"😢", left:"Sad",     right:"Devastated",
+        words:["Sorrowful","Mournful","Despondent","Disconsolate","Desolate"] },
+      { name:"Anger",   emoji:"😡", left:"Vexed",   right:"Incensed",
+        words:["Irritated","Indignant","Irate","Enraged","Apoplectic"] },
+      { name:"Joy",     emoji:"🎉", left:"Pleased", right:"Rapturous",
+        words:["Gratified","Joyful","Elated","Jubilant","Exultant"] }
+    ]
+  },
+  10: {
+    emoji:"🎓", desc:"Complex & literary words",
+    rounds:[
+      { name:"Criticism", emoji:"📝", left:"Question",  right:"Condemn",
+        words:["Doubt","Criticise","Censure","Denounce","Castigate"] },
+      { name:"Fear",      emoji:"😱", left:"Uneasy",    right:"Petrified",
+        words:["Worried","Anxious","Fearful","Frightened","Terrified"] },
+      { name:"Power",     emoji:"👑", left:"Influence", right:"Omnipotent",
+        words:["Powerful","Authoritative","Dominant","Supreme","Absolute"] }
+    ]
+  }
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentGrade  = null;
+let currentRound  = 0;
+let slots         = [null,null,null,null,null];
+let bankWords     = [];
+let wrongSlots    = [];
+let gameState     = 'idle';   // 'playing' | 'success' | 'timeup'
+let totalCorrect  = 0;
+let timerInterval = null;
+let timeLeft      = 40;
+let selectedWord  = null;     // word string selected in bank for hint
+let drag          = { word:null, from:null };
+
+const CIRC = 125.7; // 2π×20
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
+function buildHome() {
+  const grid = document.getElementById('gradeGrid');
+  grid.innerHTML = '';
+  [3,4,5,6,7,8,9,10].forEach(g => {
+    const d = GRADES[g];
+    const card = document.createElement('div');
+    card.className = 'grade-card';
+    card.innerHTML = `<div class="g-emoji">${d.emoji}</div>
+      <div class="g-name">Grade ${g}</div>
+      <div class="g-desc">${d.desc}</div>`;
+    card.onclick = () => startGrade(g);
+    grid.appendChild(card);
+  });
+}
+
+function goHome() {
+  clearInterval(timerInterval);
+  document.getElementById('homeScreen').classList.remove('hidden');
+  document.getElementById('gameScreen').classList.add('hidden');
+}
+
+function confirmBack() {
+  if (gameState === 'playing') {
+    if (!confirm('Leave this round? Your progress will be lost.')) return;
+  }
+  goHome();
+}
+
+// ── GRADE / ROUND ─────────────────────────────────────────────────────────────
+function startGrade(grade) {
+  currentGrade = grade;
+  currentRound = 0;
+  totalCorrect = 0;
+  document.getElementById('gradeLabel').textContent = grade;
+  document.getElementById('homeScreen').classList.add('hidden');
+  document.getElementById('gameScreen').classList.remove('hidden');
+  document.getElementById('gameContent').classList.remove('hidden');
+  document.getElementById('gradeComplete').classList.add('hidden');
+  loadRound();
+}
+
+function playAgain() { startGrade(currentGrade); }
+
+function loadRound() {
+  const t = GRADES[currentGrade].rounds[currentRound];
+  slots        = [null,null,null,null,null];
+  wrongSlots   = [];
+  gameState    = 'playing';
+  selectedWord = null;
+  bankWords    = shuffle([...t.words]);
+
+  document.getElementById('roundLabel').textContent = currentRound + 1;
+  document.getElementById('themeTag').textContent   = `${t.emoji} ${t.name}`;
+  document.getElementById('leftEnd').textContent    = t.left;
+  document.getElementById('rightEnd').textContent   = t.right;
+  document.getElementById('result').className       = 'result';
+  document.getElementById('checkBtn').disabled      = false;
+  document.getElementById('hintBtn').disabled       = false;
+  document.getElementById('nextBtn').style.display  = 'none';
+
+  renderSlots();
+  renderBank();
+  startTimer();
+}
+
+// ── TIMER ─────────────────────────────────────────────────────────────────────
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = 40;
+  updateTimerUI();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerUI();
+    if (timeLeft <= 0) { clearInterval(timerInterval); onTimeUp(); }
+  }, 1000);
+}
+
+function updateTimerUI() {
+  const offset = CIRC * (1 - timeLeft / 40);
+  const urgent = timeLeft <= 10;
+  document.getElementById('timerRing').style.strokeDashoffset = offset;
+  document.getElementById('timerRing').style.stroke = urgent ? '#e85d2f' : 'var(--primary)';
+  document.getElementById('timerText').textContent  = timeLeft;
+  document.getElementById('timerText').style.fill   = urgent ? '#e85d2f' : 'var(--text)';
+}
+
+function onTimeUp() {
+  if (gameState === 'success') return;
+  // Credit what was correctly placed before time ran out
+  const words = GRADES[currentGrade].rounds[currentRound].words;
+  let pre = 0;
+  slots.forEach((w, i) => { if (w && words.indexOf(w) === i) pre++; });
+  totalCorrect += pre;
+
+  gameState = 'timeup';
+  slots = [...words];   // auto-place all
+
+  renderSlots(true);
+  renderBank();
+  showResult('⏰ Time\'s up! Words have been placed in the correct order.', 'timeup');
+  document.getElementById('checkBtn').disabled = true;
+  document.getElementById('hintBtn').disabled  = true;
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderSlots(autoAnim = false) {
+  const el = document.getElementById('slots');
+  el.innerHTML = '';
+  const words = GRADES[currentGrade].rounds[currentRound].words;
+
+  for (let i = 0; i < 5; i++) {
+    const slot = document.createElement('div');
+    let cls = 'slot';
+    if (slots[i])              cls += ' filled';
+    if (wrongSlots.includes(i)) cls += ' wrong';
+    if (gameState === 'success' && slots[i]) cls += ' correct';
+    slot.className  = cls;
+    slot.dataset.slot = i;
+
+    const num = document.createElement('span');
+    num.className   = 'snum';
+    num.textContent = i + 1;
+    slot.appendChild(num);
+
+    if (slots[i]) slot.appendChild(makeSlotChip(slots[i], i, autoAnim));
+
+    slot.addEventListener('dragover',  e => { e.preventDefault(); slot.classList.add('over'); });
+    slot.addEventListener('dragleave', ()  => slot.classList.remove('over'));
+    slot.addEventListener('drop',      e => { e.preventDefault(); slot.classList.remove('over'); dropOnSlot(i); });
+    slot.addEventListener('click',     ()  => { if (gameState === 'playing' && slots[i]) returnToBank(i); });
+    el.appendChild(slot);
+  }
+}
+
+function makeSlotChip(word, slotIdx, autoAnim = false) {
+  const chip = document.createElement('div');
+  chip.className  = 'chip' + (autoAnim ? ' auto-pop' : '');
+  chip.textContent = word;
+  chip.draggable  = (gameState === 'playing');
+  chip.addEventListener('dragstart', () => {
+    if (gameState !== 'playing') return;
+    drag = { word, from: slotIdx };
+    clearWrong();
+    setTimeout(() => chip.classList.add('dragging'), 0);
+  });
+  chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+  return chip;
+}
+
+function renderBank() {
+  const el = document.getElementById('bank');
+  el.innerHTML = '';
+  const placed = slots.filter(Boolean);
+  bankWords.filter(w => !placed.includes(w)).forEach(word => {
+    const chip = document.createElement('div');
+    chip.className   = 'bank-chip' + (selectedWord === word ? ' selected' : '');
+    chip.textContent = word;
+    chip.dataset.word = word;
+    chip.draggable   = (gameState === 'playing');
+
+    chip.addEventListener('click', () => {
+      if (gameState !== 'playing') return;
+      selectedWord = (selectedWord === word) ? null : word;
+      renderBank();
+    });
+    chip.addEventListener('dragstart', () => {
+      if (gameState !== 'playing') return;
+      drag = { word, from: 'bank' };
+      selectedWord = null;
+      clearWrong();
+      setTimeout(() => chip.classList.add('dragging'), 0);
+    });
+    chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+    el.appendChild(chip);
+  });
+}
+
+// ── DROP ──────────────────────────────────────────────────────────────────────
+function setupBankDrop() {
+  const bank = document.getElementById('bank');
+  bank.addEventListener('dragover',  e  => { e.preventDefault(); bank.classList.add('over'); });
+  bank.addEventListener('dragleave', ()  => bank.classList.remove('over'));
+  bank.addEventListener('drop',      e  => {
+    e.preventDefault(); bank.classList.remove('over');
+    if (drag.word && drag.from !== 'bank') {
+      slots[drag.from] = null;
+      drag = { word:null, from:null };
+      renderSlots(); renderBank();
+    }
+  });
+}
+
+function dropOnSlot(targetIdx) {
+  if (gameState !== 'playing' || !drag.word) return;
+  clearWrong();
+  const existing = slots[targetIdx];
+  if (drag.from === 'bank') {
+    slots[targetIdx] = drag.word;
+  } else {
+    slots[drag.from]  = existing;
+    slots[targetIdx]  = drag.word;
+  }
+  drag = { word:null, from:null };
+  renderSlots(); renderBank();
+}
+
+function returnToBank(slotIdx) {
+  clearWrong();
+  slots[slotIdx] = null;
+  renderSlots(); renderBank();
+}
+
+function clearWrong() {
+  wrongSlots = [];
+  document.getElementById('result').className = 'result';
+}
+
+// ── CHECK ─────────────────────────────────────────────────────────────────────
+function checkAnswers() {
+  if (gameState !== 'playing') return;
+  if (!slots.every(s => s !== null)) {
+    showResult('Place all 5 words on the scale first!', 'info');
+    return;
+  }
+  const words = GRADES[currentGrade].rounds[currentRound].words;
+  wrongSlots = [];
+  slots.forEach((w, i) => { if (words.indexOf(w) !== i) wrongSlots.push(i); });
+
+  if (wrongSlots.length === 0) {
+    clearInterval(timerInterval);
+    gameState     = 'success';
+    totalCorrect += 5;
+    renderSlots();
+    showResult('🎉 Perfect! All words in the right place!', 'success');
+    document.getElementById('checkBtn').disabled = true;
+    document.getElementById('hintBtn').disabled  = true;
+    document.getElementById('nextBtn').style.display = 'inline-block';
+  } else {
+    renderSlots();
+    const n = wrongSlots.length;
+    showResult(`${n} word${n > 1 ? 's are' : ' is'} in the wrong spot — try again!`, 'error');
+  }
+}
+
+// ── HINT ──────────────────────────────────────────────────────────────────────
+function giveHint() {
+  if (gameState !== 'playing') return;
+  const words = GRADES[currentGrade].rounds[currentRound].words;
+  let correctSlot = -1;
+  let hintWord    = null;
+
+  if (selectedWord) {
+    hintWord    = selectedWord;
+    correctSlot = words.indexOf(hintWord);
+    selectedWord = null;
+    renderBank();
+  } else {
+    // First unplaced word
+    hintWord = words.find(w => !slots.includes(w));
+    if (hintWord) {
+      correctSlot = words.indexOf(hintWord);
+      // Flash it in bank
+      const bankChip = [...document.querySelectorAll('.bank-chip')]
+        .find(el => el.textContent === hintWord);
+      if (bankChip) {
+        bankChip.classList.add('selected');
+        setTimeout(() => bankChip.classList.remove('selected'), 2200);
+      }
+    } else {
+      // All placed — hint a wrongly placed word
+      for (let i = 0; i < 5; i++) {
+        if (slots[i] && words.indexOf(slots[i]) !== i) {
+          hintWord    = slots[i];
+          correctSlot = words.indexOf(hintWord);
+          break;
+        }
+      }
+    }
+  }
+
+  if (correctSlot === -1) return;
+  const slotEls = document.querySelectorAll('.slot');
+  if (slotEls[correctSlot]) {
+    slotEls[correctSlot].classList.add('hint-hi');
+    setTimeout(() => slotEls[correctSlot].classList.remove('hint-hi'), 2200);
+  }
+}
+
+// ── NEXT / COMPLETE ───────────────────────────────────────────────────────────
+function nextRound() {
+  currentRound++;
+  if (currentRound >= 3) {
+    showGradeComplete();
+  } else {
+    document.getElementById('hintBtn').disabled  = false;
+    document.getElementById('checkBtn').disabled = false;
+    loadRound();
+  }
+}
+
+function showGradeComplete() {
+  clearInterval(timerInterval);
+  document.getElementById('gameContent').classList.add('hidden');
+  document.getElementById('gradeComplete').classList.remove('hidden');
+
+  document.getElementById('gcTitle').textContent = `Grade ${currentGrade} Complete!`;
+  document.getElementById('gcScore').textContent = `${totalCorrect} / 15`;
+
+  const pct = totalCorrect / 15;
+  let trophy, msg;
+  if      (pct === 1)  { trophy='🏆'; msg="Flawless! You have a perfect sense of word intensity."; }
+  else if (pct >= 0.8) { trophy='🌟'; msg="Excellent! You understand word gradation really well."; }
+  else if (pct >= 0.6) { trophy='👍'; msg="Good effort! Keep practising to sharpen your sense of intensity."; }
+  else                 { trophy='📚'; msg="Keep going — the nuance between similar words takes time to master!"; }
+
+  document.getElementById('gcTrophy').textContent = trophy;
+  document.getElementById('gcMsg').textContent    = msg;
+}
+
+// ── RESULT BANNER ─────────────────────────────────────────────────────────────
+function showResult(msg, type) {
+  const el = document.getElementById('result');
+  el.textContent = msg;
+  el.className   = `result show ${type}`;
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ── TOUCH ─────────────────────────────────────────────────────────────────────
+let touch = { word:null, from:null, clone:null };
+
+document.addEventListener('touchstart', e => {
+  const target = e.target.closest('.bank-chip, .chip');
+  if (!target || gameState !== 'playing') return;
+  const word   = target.dataset.word || target.textContent.trim();
+  const slotEl = target.closest('.slot');
+  const from   = slotEl ? parseInt(slotEl.dataset.slot) : 'bank';
+  const rect   = target.getBoundingClientRect();
+  const clone  = target.cloneNode(true);
+  clone.style.cssText = `position:fixed;pointer-events:none;z-index:999;opacity:0.85;
+    width:${rect.width}px;left:${rect.left}px;top:${rect.top}px;transform:scale(1.08);`;
+  document.body.appendChild(clone);
+  touch = { word, from, clone };
+  clearWrong(); renderSlots();
+}, { passive:true });
+
+document.addEventListener('touchmove', e => {
+  if (!touch.word || !touch.clone) return;
+  const t = e.touches[0];
+  touch.clone.style.left = (t.clientX - touch.clone.offsetWidth / 2) + 'px';
+  touch.clone.style.top  = (t.clientY - 28) + 'px';
+  document.querySelectorAll('.slot,.bank').forEach(el => el.classList.remove('over'));
+  const under = document.elementFromPoint(t.clientX, t.clientY);
+  const s = under && under.closest('.slot');
+  const b = under && under.closest('.bank');
+  if (s) s.classList.add('over'); else if (b) b.classList.add('over');
+}, { passive:true });
+
+document.addEventListener('touchend', e => {
+  if (!touch.word) return;
+  if (touch.clone) { touch.clone.remove(); touch.clone = null; }
+  document.querySelectorAll('.slot,.bank').forEach(el => el.classList.remove('over'));
+
+  const t     = e.changedTouches[0];
+  const under = document.elementFromPoint(t.clientX, t.clientY);
+  const slotEl = under && under.closest('.slot');
+  const bankEl = under && under.closest('.bank');
+
+  drag = { word: touch.word, from: touch.from };
+  if (slotEl) {
+    dropOnSlot(parseInt(slotEl.dataset.slot));
+  } else if (bankEl && touch.from !== 'bank') {
+    slots[touch.from] = null;
+    drag = { word:null, from:null };
+    renderSlots(); renderBank();
+  }
+  drag  = { word:null, from:null };
+  touch = { word:null, from:null, clone:null };
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+buildHome();
+setupBankDrop();
+</script>
+</body>
+</html>

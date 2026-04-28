@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bomb Tap — Odd One Out</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{
+      font-family:'Segoe UI',Tahoma,sans-serif;
+      background:#0d0d1a;
+      color:#fff;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+
+    /* ── Screens ─────────────────────────────── */
+    .screen{
+      display:none;
+      flex-direction:column;
+      align-items:center;
+      width:100%;
+      max-width:460px;
+      padding:28px 20px 24px;
+      min-height:100vh;
+      justify-content:center;
+    }
+    .screen.active{display:flex;}
+
+    /* ── Grade Select ─────────────────────────── */
+    .logo{font-size:3.8rem;margin-bottom:4px;filter:drop-shadow(0 0 16px rgba(255,100,0,.6));}
+    .game-title{font-size:2.4rem;font-weight:900;color:#ff6b35;letter-spacing:3px;text-shadow:0 0 24px rgba(255,107,53,.5);}
+    .game-tagline{font-size:1rem;color:#ff9800;font-weight:600;margin-bottom:6px;}
+    .game-sub{font-size:.82rem;color:#666;margin-bottom:32px;text-align:center;line-height:1.5;}
+
+    .grade-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;width:100%;}
+    .grade-btn{
+      background:linear-gradient(155deg,#1a2040,#0f1a35);
+      border:2px solid #ff6b35;
+      border-radius:14px;
+      padding:18px 6px;
+      cursor:pointer;
+      text-align:center;
+      font-size:1.4rem;
+      font-weight:800;
+      color:#fff;
+      transition:all .2s;
+      user-select:none;
+    }
+    .grade-btn span{display:block;font-size:.6rem;font-weight:400;color:#888;margin-top:2px;letter-spacing:.5px;}
+    .grade-btn:hover{background:#ff6b35;transform:translateY(-3px);box-shadow:0 6px 20px rgba(255,107,53,.45);}
+    .grade-btn:hover span{color:rgba(255,255,255,.8);}
+
+    /* ── Game Screen ──────────────────────────── */
+    .game-header{display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:14px;}
+    .grade-badge{background:#ff6b35;padding:5px 14px;border-radius:20px;font-weight:700;font-size:.85rem;}
+    .score-box{text-align:right;}
+    .score-val{font-size:1.1rem;font-weight:800;color:#ff9800;}
+    .round-val{font-size:.68rem;color:#555;}
+
+    /* Bomb */
+    .bomb-zone{display:flex;flex-direction:column;align-items:center;margin-bottom:16px;}
+    .alarm-row{display:flex;align-items:center;gap:16px;}
+    .bomb-emoji{
+      font-size:4.8rem;
+      animation:sway .7s ease-in-out infinite;
+      transform-origin:top center;
+      filter:drop-shadow(0 0 14px rgba(255,100,0,.5));
+      transition:filter .3s;
+    }
+    .bomb-emoji.urgent{animation:sway .25s ease-in-out infinite;filter:drop-shadow(0 0 22px rgba(255,30,0,.9));}
+    @keyframes sway{0%,100%{transform:rotate(-7deg);}50%{transform:rotate(7deg);}}
+
+    /* Alarm lights */
+    .alarm-light{
+      width:18px;height:18px;border-radius:50%;
+      background:#1a1a2e;border:2px solid #2a2a4a;
+      flex-shrink:0;
+      transition:background .15s,box-shadow .15s;
+    }
+    .alarm-light.active{
+      background:#f44336;border-color:#ff5252;
+      animation:alarm-blink .35s ease-in-out infinite;
+      box-shadow:0 0 10px rgba(244,67,54,.9),0 0 22px rgba(244,67,54,.5);
+    }
+    @keyframes alarm-blink{
+      0%,100%{opacity:1;transform:scale(1);}
+      50%{opacity:.1;transform:scale(.8);}
+    }
+
+    .timer-wrap{width:220px;height:13px;background:#111;border-radius:7px;overflow:hidden;margin-top:10px;border:1px solid #2a2a3a;}
+    .timer-fill{height:100%;border-radius:7px;background:linear-gradient(90deg,#4caf50,#ff9800 60%,#f44336);transition:width .5s linear;width:100%;}
+    .timer-text{font-size:1.7rem;font-weight:900;font-variant-numeric:tabular-nums;margin-top:6px;transition:color .3s;}
+
+    /* Instruction */
+    .instruction{font-size:.8rem;color:#777;margin-bottom:14px;text-align:center;}
+    .instruction strong{color:#ff6b35;}
+
+    /* Crates */
+    .crates{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;}
+    .crate{
+      background:linear-gradient(155deg,#7a5c1e,#5c4010);
+      border:3px solid #b8870a;
+      border-radius:12px;
+      padding:28px 10px;
+      text-align:center;
+      cursor:pointer;
+      position:relative;
+      transition:transform .15s,box-shadow .15s,border-color .15s,background .15s;
+      box-shadow:0 4px 18px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,200,80,.15);
+      overflow:hidden;
+      user-select:none;
+    }
+    .crate::before,.crate::after{
+      content:'';position:absolute;left:10px;right:10px;height:2px;
+      background:rgba(184,135,10,.3);border-radius:2px;
+    }
+    .crate::before{top:9px;}
+    .crate::after{bottom:9px;}
+    .crate:hover:not(.locked){
+      transform:translateY(-4px) scale(1.02);
+      box-shadow:0 8px 28px rgba(255,107,53,.35);
+      border-color:#ff6b35;
+    }
+    .crate .word{
+      font-size:1.1rem;
+      font-weight:900;
+      letter-spacing:1.2px;
+      text-transform:uppercase;
+      text-shadow:0 1px 3px rgba(0,0,0,.7);
+      word-break:break-word;
+      line-height:1.2;
+    }
+    .crate .word.sm{font-size:.9rem;}
+    .crate .word.xs{font-size:.75rem;letter-spacing:.5px;}
+
+    .crate.correct{
+      background:linear-gradient(155deg,#2a5e22,#1a3d15)!important;
+      border-color:#4caf50!important;
+      animation:pop .4s ease-out;
+    }
+    .crate.wrong{
+      background:linear-gradient(155deg,#5e1a1a,#3d1010)!important;
+      border-color:#f44336!important;
+      animation:jolt .4s ease-out;
+    }
+    .crate.locked{cursor:default;}
+
+    @keyframes pop{0%{transform:scale(1);}50%{transform:scale(1.15);}100%{transform:scale(1);}}
+    @keyframes jolt{0%,100%{transform:translateX(0);}25%{transform:translateX(-10px);}75%{transform:translateX(10px);}}
+
+    .round-footer{margin-top:12px;font-size:.72rem;color:#444;text-align:center;}
+
+    /* ── Result Screen ────────────────────────── */
+    .result-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;width:100%;}
+    .result-icon{font-size:6rem;animation:pop .5s ease-out;}
+    .result-title{font-size:3rem;font-weight:900;letter-spacing:3px;margin:10px 0 4px;}
+    .result-title.boom{color:#f44336;}
+    .result-title.defused{color:#4caf50;}
+    .result-sub{font-size:.9rem;color:#aaa;margin-bottom:14px;}
+
+    .explain-box{
+      width:100%;
+      background:#0f0f20;
+      border:1px solid #2a2a3a;
+      border-radius:12px;
+      padding:16px 18px;
+      text-align:left;
+      font-size:.83rem;
+      color:#ccc;
+      line-height:1.65;
+      margin-bottom:20px;
+    }
+    .explain-box .odd-label{font-size:.68rem;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+    .explain-box .odd-word{color:#ff6b35;font-weight:800;font-size:1.05rem;}
+    .explain-box .explain-text{color:#aaa;font-size:.8rem;margin-top:8px;line-height:1.6;}
+    .explain-box .category-tag{
+      display:inline-block;
+      background:#1a2040;
+      border:1px solid #2a3060;
+      color:#7a8acc;
+      font-size:.68rem;
+      padding:3px 10px;
+      border-radius:10px;
+      margin-bottom:8px;
+    }
+
+    .btn-row{display:flex;gap:12px;justify-content:center;width:100%;}
+    .btn{
+      padding:13px 22px;border-radius:30px;border:none;
+      font-size:.9rem;font-weight:700;cursor:pointer;
+      transition:opacity .2s,transform .1s;
+      user-select:none;
+    }
+    .btn:hover{opacity:.88;transform:translateY(-1px);}
+    .btn-primary{background:#ff6b35;color:#fff;}
+    .btn-green{background:#4caf50;color:#fff;}
+    .btn-outline{background:transparent;color:#aaa;border:2px solid #333;}
+
+    /* ── Scorecard ────────────────────────────── */
+    .scorecard-title{font-size:2rem;font-weight:900;color:#ff9800;margin:10px 0 4px;}
+    .grade-sub-label{font-size:.82rem;color:#666;margin-bottom:20px;}
+    .score-big{font-size:4.5rem;font-weight:900;margin:4px 0;}
+    .score-big span{font-size:1.8rem;color:#555;}
+    .score-label{font-size:.8rem;color:#666;margin-bottom:22px;}
+
+    .rounds-list{width:100%;display:flex;flex-direction:column;gap:8px;margin-bottom:22px;}
+    .round-row{
+      display:flex;align-items:center;gap:10px;
+      background:#0f0f20;border:1px solid #1a1a2e;
+      border-radius:10px;padding:10px 14px;
+    }
+    .round-icon{font-size:1.2rem;flex-shrink:0;}
+    .round-words{flex:1;font-size:.78rem;color:#aaa;}
+    .round-words .rw-correct{color:#4caf50;font-weight:700;}
+    .round-words .rw-wrong{color:#f44336;font-weight:700;}
+
+    /* ── Particles (explosion) ────────────────── */
+    .particle{
+      position:fixed;width:10px;height:10px;border-radius:50%;
+      pointer-events:none;z-index:999;
+      animation:burst 1s ease-out forwards;
+    }
+    @keyframes burst{
+      0%{opacity:1;transform:translate(0,0) scale(1);}
+      100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.2);}
+    }
+
+    /* ── Countdown flash ──────────────────────── */
+    @keyframes flash-red{0%,100%{background:#0d0d1a;}50%{background:#200808;}}
+    body.flashing{animation:flash-red .4s ease-out;}
+  </style>
+</head>
+<body>
+
+<!-- ═══ Grade Select ═══════════════════════════ -->
+<div class="screen active" id="s-grade">
+  <div class="logo">💣</div>
+  <div class="game-title">BOMB TAP</div>
+  <div class="game-tagline">Odd One Out</div>
+  <div class="game-sub">Find the word that doesn't belong —<br>before the bomb explodes!</div>
+  <div class="grade-grid" id="grade-grid"></div>
+</div>
+
+<!-- ═══ Game ════════════════════════════════════ -->
+<div class="screen" id="s-game">
+  <div class="game-header">
+    <div class="grade-badge" id="g-badge">Grade 5</div>
+    <div class="score-box">
+      <div class="score-val" id="g-score">Score: 0</div>
+      <div class="round-val" id="g-round">Round 1 of 5</div>
+    </div>
+  </div>
+
+  <div class="bomb-zone">
+    <div class="alarm-row">
+      <div class="alarm-light" id="al-left"></div>
+      <div class="bomb-emoji" id="bomb">💣</div>
+      <div class="alarm-light" id="al-right"></div>
+    </div>
+    <div class="timer-wrap"><div class="timer-fill" id="t-fill"></div></div>
+    <div class="timer-text" id="t-text">30s</div>
+  </div>
+
+  <div class="instruction">Tap the word that does <strong>NOT</strong> belong with the others!</div>
+
+  <div class="crates" id="crates">
+    <div class="crate" id="c0"><div class="word" id="w0">WORD</div></div>
+    <div class="crate" id="c1"><div class="word" id="w1">WORD</div></div>
+    <div class="crate" id="c2"><div class="word" id="w2">WORD</div></div>
+    <div class="crate" id="c3"><div class="word" id="w3">WORD</div></div>
+  </div>
+
+  <div class="round-footer" id="g-footer"></div>
+</div>
+
+<!-- ═══ Result ══════════════════════════════════ -->
+<div class="screen" id="s-result">
+  <div class="result-wrap">
+    <div class="result-icon" id="r-icon">💥</div>
+    <div class="result-title" id="r-title">BOOM!</div>
+    <div class="result-sub" id="r-sub"></div>
+    <div class="explain-box" id="r-explain">
+      <div class="odd-label">The odd one out was</div>
+      <div class="odd-word" id="r-odd"></div>
+      <div class="category-tag" id="r-cat"></div>
+      <div class="explain-text" id="r-text"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="goGrade()">Change Grade</button>
+      <button class="btn btn-green" id="r-next" onclick="nextRound()">Next Round →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Scorecard ═══════════════════════════════ -->
+<div class="screen" id="s-score">
+  <div class="logo" style="font-size:2.8rem">🏆</div>
+  <div class="scorecard-title">ROUND OVER!</div>
+  <div class="grade-sub-label" id="sc-grade-label">Grade 5</div>
+  <div class="score-big" id="sc-big">0<span>/50</span></div>
+  <div class="score-label" id="sc-label">0 correct out of 5</div>
+  <div class="rounds-list" id="sc-list"></div>
+  <div class="btn-row">
+    <button class="btn btn-outline" onclick="goGrade()">Change Grade</button>
+    <button class="btn btn-primary" onclick="restartGrade()">Play Again</button>
+  </div>
+</div>
+
+<script src="questions.js"></script>
+<script>
+// ─── State ──────────────────────────────────────────────────────────────────
+let state = {
+  grade: 5,
+  pool: [],
+  roundIdx: 0,
+  score: 0,
+  history: [],
+  timerMax: 30,
+  timerLeft: 30,
+  timerInterval: null,
+  order: [0,1,2,3],
+  answered: false,
+};
+
+// ─── Audio ───────────────────────────────────────────────────────────────────
+let audioCtx = null;
+
+function getAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playTick(urgent){
+  try{
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'square';
+    osc.frequency.value = urgent ? 1100 : 750;
+    const t = ctx.currentTime;
+    gain.gain.setValueAtTime(urgent ? 0.12 : 0.07, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+    osc.start(t);
+    osc.stop(t + 0.045);
+  }catch(e){}
+}
+
+function playBlast(){
+  try{
+    const ctx = getAudio();
+    const t = ctx.currentTime;
+
+    // Low thump — cartoon boom, not scary
+    const thump = ctx.createOscillator();
+    const thumpGain = ctx.createGain();
+    thump.connect(thumpGain);
+    thumpGain.connect(ctx.destination);
+    thump.type = 'sine';
+    thump.frequency.setValueAtTime(180, t);
+    thump.frequency.exponentialRampToValueAtTime(45, t + 0.35);
+    thumpGain.gain.setValueAtTime(0.65, t);
+    thumpGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+    thump.start(t);
+    thump.stop(t + 0.55);
+
+    // Mid crunch layer
+    const mid = ctx.createOscillator();
+    const midGain = ctx.createGain();
+    mid.connect(midGain);
+    midGain.connect(ctx.destination);
+    mid.type = 'sawtooth';
+    mid.frequency.setValueAtTime(320, t);
+    mid.frequency.exponentialRampToValueAtTime(80, t + 0.2);
+    midGain.gain.setValueAtTime(0.25, t);
+    midGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+    mid.start(t);
+    mid.stop(t + 0.25);
+
+    // Short noise burst
+    const bufSize = Math.floor(ctx.sampleRate * 0.3);
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for(let i=0;i<bufSize;i++) data[i]=(Math.random()*2-1)*Math.pow(1-i/bufSize,0.6);
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    const nGain = ctx.createGain();
+    noise.connect(nGain);
+    nGain.connect(ctx.destination);
+    nGain.gain.setValueAtTime(0.35, t);
+    nGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+    noise.start(t);
+  }catch(e){}
+}
+
+function playCelebration(){
+  try{
+    const ctx = getAudio();
+    const t = ctx.currentTime;
+    // Bright ascending arpeggio — C5 E5 G5 C6
+    const notes = [523, 659, 784, 1047];
+    notes.forEach((freq, i)=>{
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const st = t + i * 0.11;
+      gain.gain.setValueAtTime(0.0001, st);
+      gain.gain.linearRampToValueAtTime(0.22, st + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, st + 0.38);
+      osc.start(st);
+      osc.stop(st + 0.38);
+    });
+    // Shimmer on top — high fifth
+    const shimmer = ctx.createOscillator();
+    const sGain = ctx.createGain();
+    shimmer.connect(sGain);
+    sGain.connect(ctx.destination);
+    shimmer.type = 'sine';
+    shimmer.frequency.value = 1568; // G6
+    const st2 = t + 0.33;
+    sGain.gain.setValueAtTime(0.0001, st2);
+    sGain.gain.linearRampToValueAtTime(0.14, st2 + 0.03);
+    sGain.gain.exponentialRampToValueAtTime(0.0001, st2 + 0.45);
+    shimmer.start(st2);
+    shimmer.stop(st2 + 0.45);
+  }catch(e){}
+}
+
+// ─── Alarm lights ────────────────────────────────────────────────────────────
+function setAlarm(on){
+  ['al-left','al-right'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.classList.toggle('active', on);
+  });
+}
+
+// ─── Init grade buttons ──────────────────────────────────────────────────────
+(function initGradeGrid(){
+  const grid = document.getElementById('grade-grid');
+  for(let g=3;g<=10;g++){
+    const btn = document.createElement('div');
+    btn.className='grade-btn';
+    btn.innerHTML=`${g}<span>Grade</span>`;
+    btn.onclick=()=>startGame(g);
+    grid.appendChild(btn);
+  }
+})();
+
+// ─── Start game ──────────────────────────────────────────────────────────────
+function startGame(g){
+  state.grade = g;
+  state.pool = shuffle([...QUESTIONS[g]]).slice(0, Math.max(5, QUESTIONS[g].length));
+  state.roundIdx = 0;
+  state.score = 0;
+  state.history = [];
+  document.getElementById('g-badge').textContent = `Grade ${g}`;
+  showScreen('s-game');
+  loadRound();
+}
+
+// ─── Load round ──────────────────────────────────────────────────────────────
+function loadRound(){
+  state.answered = false;
+  const q = state.pool[state.roundIdx];
+  const roundNum = state.roundIdx + 1;
+  const timerMax = 30 - state.roundIdx * 5;
+  state.timerMax = timerMax;
+  state.timerLeft = timerMax;
+
+  document.getElementById('g-score').textContent = `Score: ${state.score}`;
+  document.getElementById('g-round').textContent = `Round ${roundNum} of 5`;
+  document.getElementById('g-footer').textContent =
+    `⚡ Timer: ${timerMax}s this round — tap before it explodes!`;
+
+  state.order = shuffle([0,1,2,3]);
+  state.order.forEach((qIdx, pos)=>{
+    const word = q.words[qIdx];
+    const wEl = document.getElementById('w'+pos);
+    wEl.textContent = word;
+    wEl.className = 'word'+(word.length>12?' xs':word.length>9?' sm':'');
+    const cEl = document.getElementById('c'+pos);
+    cEl.className = 'crate';
+    cEl.onclick = ()=>tap(pos, qIdx===q.odd);
+  });
+
+  document.getElementById('bomb').className='bomb-emoji';
+  setAlarm(false);
+  updateTimer(timerMax, timerMax);
+  clearInterval(state.timerInterval);
+  playTick(false);
+  state.timerInterval = setInterval(tick, 1000);
+}
+
+function tick(){
+  state.timerLeft--;
+  updateTimer(state.timerLeft, state.timerMax);
+  const urgent = state.timerLeft <= 5;
+  playTick(urgent);
+  if(urgent){
+    document.getElementById('bomb').className='bomb-emoji urgent';
+    setAlarm(true);
+  }
+  if(state.timerLeft <= 0){
+    clearInterval(state.timerInterval);
+    if(!state.answered) triggerBoom(null);
+  }
+}
+
+function updateTimer(left, max){
+  const pct = Math.max(0,(left/max)*100);
+  document.getElementById('t-fill').style.width = pct+'%';
+  const tEl = document.getElementById('t-text');
+  tEl.textContent = left+'s';
+  tEl.style.color = left<=5?'#f44336':left<=10?'#ff9800':'#4caf50';
+}
+
+// ─── Tap ─────────────────────────────────────────────────────────────────────
+function tap(pos, isOdd){
+  if(state.answered) return;
+  state.answered = true;
+  clearInterval(state.timerInterval);
+  setAlarm(false);
+  lockCrates();
+
+  const q = state.pool[state.roundIdx];
+  if(isOdd){
+    playCelebration();
+    document.getElementById('c'+pos).classList.add('correct');
+    state.score += 10;
+    setTimeout(()=>showResult(true, q), 500);
+  } else {
+    playBlast();
+    document.getElementById('c'+pos).classList.add('wrong');
+    [0,1,2,3].forEach(p=>{
+      if(p!==pos) setTimeout(()=>document.getElementById('c'+p).classList.add('wrong'),120);
+    });
+    spawnParticles();
+    setTimeout(()=>showResult(false, q), 800);
+  }
+}
+
+function triggerBoom(q){
+  if(state.answered) return;
+  state.answered = true;
+  clearInterval(state.timerInterval);
+  setAlarm(false);
+  lockCrates();
+  playBlast();
+  q = q || state.pool[state.roundIdx];
+  [0,1,2,3].forEach(p=>document.getElementById('c'+p).classList.add('wrong'));
+  spawnParticles();
+  setTimeout(()=>showResult(false, q), 700);
+}
+
+function lockCrates(){
+  [0,1,2,3].forEach(p=>{
+    const c=document.getElementById('c'+p);
+    c.classList.add('locked');
+    c.onclick=null;
+  });
+}
+
+// ─── Show result ──────────────────────────────────────────────────────────────
+function showResult(correct, q){
+  const isLast = state.roundIdx >= 4;
+
+  document.getElementById('r-icon').textContent = correct?'🎉':'💥';
+  const title = document.getElementById('r-title');
+  title.textContent = correct?'DEFUSED!':'BOOM!';
+  title.className = 'result-title '+(correct?'defused':'boom');
+  document.getElementById('r-sub').textContent = correct
+    ? 'You found the odd one out!'
+    : 'Wrong tap — the bomb exploded!';
+
+  const oddWord = q.words[q.odd];
+  document.getElementById('r-odd').textContent = oddWord;
+  document.getElementById('r-cat').textContent = q.category;
+  document.getElementById('r-text').textContent = q.explanation;
+
+  const nextBtn = document.getElementById('r-next');
+  nextBtn.textContent = isLast ? 'See Scorecard 🏆' : 'Next Round →';
+
+  state.history.push({
+    correct,
+    oddWord,
+    category: q.category,
+    roundNum: state.roundIdx+1,
+  });
+
+  showScreen('s-result');
+}
+
+// ─── Next round / scorecard ───────────────────────────────────────────────────
+function nextRound(){
+  state.roundIdx++;
+  if(state.roundIdx >= 5){
+    showScorecard();
+  } else {
+    showScreen('s-game');
+    loadRound();
+  }
+}
+
+function showScorecard(){
+  document.getElementById('sc-grade-label').textContent = `Grade ${state.grade}`;
+  document.getElementById('sc-big').innerHTML = `${state.score}<span>/50</span>`;
+  const correct = state.history.filter(h=>h.correct).length;
+  document.getElementById('sc-label').textContent = `${correct} correct out of 5`;
+
+  const list = document.getElementById('sc-list');
+  list.innerHTML='';
+  state.history.forEach((h,i)=>{
+    const row = document.createElement('div');
+    row.className='round-row';
+    row.innerHTML=`
+      <div class="round-icon">${h.correct?'✅':'💥'}</div>
+      <div class="round-words">
+        <div style="font-size:.72rem;color:#555;">Round ${h.roundNum} · ${h.category}</div>
+        <div>Odd one out: <span class="${h.correct?'rw-correct':'rw-wrong'}">${h.oddWord}</span></div>
+      </div>`;
+    list.appendChild(row);
+  });
+
+  showScreen('s-score');
+}
+
+// ─── Nav ─────────────────────────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goGrade(){
+  clearInterval(state.timerInterval);
+  setAlarm(false);
+  showScreen('s-grade');
+}
+function restartGrade(){ startGame(state.grade); }
+
+// ─── Particles ────────────────────────────────────────────────────────────────
+function spawnParticles(){
+  const colors=['#f44336','#ff9800','#ffeb3b','#ff6b35','#ff1744'];
+  for(let i=0;i<22;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    const angle=Math.random()*Math.PI*2;
+    const dist=80+Math.random()*140;
+    p.style.cssText=`
+      left:50%;top:50%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      --dx:${Math.cos(angle)*dist}px;
+      --dy:${Math.sin(angle)*dist}px;
+      animation-duration:${.6+Math.random()*.6}s;
+    `;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),1200);
+  }
+}
+
+// ─── Shuffle ──────────────────────────────────────────────────────────────────
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+</script>
+</body>
+</html>

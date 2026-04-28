@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Sort — Playable Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{
+      font-family:'Segoe UI',Tahoma,sans-serif;
+      background:#0a0a14;min-height:100vh;
+      display:flex;flex-direction:column;align-items:center;
+      padding:24px 16px 48px;
+    }
+    .tab-bar{display:flex;gap:12px;margin-bottom:28px;}
+    .tab-btn{
+      padding:10px 26px;border-radius:24px;border:2px solid #333;
+      background:transparent;color:#888;font-size:.88rem;font-weight:700;
+      cursor:pointer;transition:all .2s;font-family:inherit;
+    }
+    .tab-btn.pp-active{background:#c8891e;border-color:#c8891e;color:#fff;}
+    .tab-btn.bg-active{background:#2e6e2e;border-color:#4caf50;color:#fff;}
+    .mockup{display:none;}
+    .mockup.active{display:block;}
+    .phone{
+      width:360px;border-radius:36px;border:3px solid #2a2a3a;
+      overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.9);
+      position:relative;
+    }
+
+    /* ══════════════════════════════════
+       SHARED COMPONENTS
+    ══════════════════════════════════ */
+    .dot{width:9px;height:9px;border-radius:50%;}
+    .dot.pp-on{background:#c8891e;}
+    .dot.bg-on{background:#4caf50;}
+    .dot.correct-dot{background:#4caf50!important;}
+    .dot.wrong-dot{background:#f44336!important;}
+    .dot.off{background:#222;}
+    .dots{display:flex;gap:5px;align-items:center;}
+
+    .timer-bar{width:88%;height:7px;background:#111;border-radius:4px;margin:10px auto 0;overflow:hidden;}
+    .timer-fill{height:100%;border-radius:4px;transition:width .9s linear;}
+    .tf-pp{background:linear-gradient(90deg,#4caf50,#ff9800 55%,#f44336);}
+    .tf-bg{background:linear-gradient(90deg,#66bb6a,#8bc34a);}
+
+    @keyframes jolt{0%,100%{transform:translateX(0);}25%{transform:translateX(-8px);}75%{transform:translateX(8px);}}
+    @keyframes popIn{0%{transform:scale(.8);opacity:0;}100%{transform:scale(1);opacity:1;}}
+    @keyframes fadeSlide{0%{opacity:0;transform:translateY(6px);}100%{opacity:1;transform:translateY(0);}}
+
+    /* ══════════════════════════════════
+       PARCEL POST
+    ══════════════════════════════════ */
+    .pp-screen{background:#160e04;min-height:640px;display:flex;flex-direction:column;align-items:center;}
+    .pp-header{
+      width:100%;display:flex;justify-content:space-between;align-items:center;
+      padding:18px 18px 10px;background:#0e0802;border-bottom:2px solid #3a2410;
+    }
+    .pp-badge{background:#c8891e;color:#fff;font-weight:800;font-size:.78rem;padding:4px 13px;border-radius:20px;}
+    .pp-score{color:#e8a840;font-size:1rem;font-weight:800;}
+
+    .pp-board{
+      width:86%;margin:14px auto 10px;
+      background:linear-gradient(145deg,#4a2c0e,#2e1a06);
+      border:3px solid #c8891e;border-radius:12px;
+      padding:11px 16px 13px;text-align:center;
+      box-shadow:0 6px 20px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,180,60,.08);
+      position:relative;
+    }
+    .pp-board::before,.pp-board::after{content:'●';position:absolute;color:#c8891e;font-size:.45rem;top:8px;}
+    .pp-board::before{left:10px;} .pp-board::after{right:10px;}
+    .pp-board .blbl{font-size:.56rem;color:#8a6030;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
+    .pp-board .btgt{font-size:2.2rem;font-weight:900;color:#ffd060;letter-spacing:5px;text-shadow:0 0 22px rgba(255,208,96,.4);}
+    .pp-board .bsub{font-size:.58rem;color:#6a4820;margin-top:2px;}
+
+    /* Belt */
+    .belt-wrap{width:100%;background:#0a0602;}
+    .belt-rail{
+      height:10px;
+      background:repeating-linear-gradient(90deg,#3d2410 0,#3d2410 26px,#261606 26px,#261606 52px);
+      animation:roll .5s linear infinite;
+    }
+    @keyframes roll{from{background-position:0 0;}to{background-position:52px 0;}}
+    .belt-surface{
+      height:96px;background:#1a0e04;
+      display:flex;align-items:center;justify-content:center;gap:14px;padding:0 10px;
+    }
+    .belt-arrow{font-size:1.2rem;color:#3a2010;animation:ap .55s ease-in-out infinite;}
+    @keyframes ap{0%,100%{opacity:1;transform:translateX(0);}50%{opacity:.3;transform:translateX(5px);}}
+
+    .parcel{
+      background:linear-gradient(145deg,#7a4e28,#4e2e10);
+      border:2.5px solid #c8891e;border-radius:8px;
+      padding:10px 12px;text-align:center;position:relative;flex-shrink:0;
+      box-shadow:0 3px 12px rgba(0,0,0,.5);min-width:74px;
+    }
+    .parcel::before{content:'';position:absolute;left:0;right:0;top:50%;height:2px;background:rgba(200,137,30,.35);}
+    .parcel::after{content:'';position:absolute;top:0;bottom:0;left:50%;width:2px;background:rgba(200,137,30,.35);}
+    .pw{font-size:.78rem;font-weight:900;color:#fff;letter-spacing:.7px;position:relative;z-index:1;background:rgba(50,28,8,.7);padding:2px 4px;border-radius:3px;}
+    .parcel.dim{opacity:.3;}
+    .parcel.now{border-color:#ff9800;box-shadow:0 0 18px rgba(255,152,0,.5);animation:parcelBob .8s ease-in-out infinite;}
+    .parcel.now.correct-p{border-color:#4caf50!important;box-shadow:0 0 18px rgba(76,175,80,.6)!important;animation:none!important;}
+    .parcel.now.wrong-p{border-color:#f44336!important;box-shadow:0 0 18px rgba(244,67,54,.55)!important;animation:jolt .35s ease-out!important;}
+    @keyframes parcelBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+    .pstamp{
+      position:absolute;top:-9px;right:-9px;width:24px;height:24px;
+      border-radius:50%;display:none;align-items:center;justify-content:center;
+      font-size:.55rem;font-weight:900;color:#fff;z-index:2;border:2px solid rgba(0,0,0,.3);
+    }
+
+    /* Feedback */
+    .pp-feedback{
+      width:88%;margin:8px auto 0;min-height:36px;
+      font-size:.72rem;line-height:1.45;text-align:center;color:#555;
+      border-radius:8px;padding:6px 10px;
+    }
+    .pp-feedback.ok{background:#0d2a0d;color:#6abf6a;border:1px solid #1e4a1e;animation:fadeSlide .25s ease-out;}
+    .pp-feedback.ng{background:#2a0d0d;color:#e06060;border:1px solid #4a1e1e;animation:fadeSlide .25s ease-out;}
+    .pp-feedback.to{background:#1a1a0d;color:#aa8840;border:1px solid #3a3a1e;animation:fadeSlide .25s ease-out;}
+
+    /* Chutes */
+    .pp-chutes{display:flex;gap:8px;width:88%;margin:10px auto 0;}
+    .chute{
+      flex:1;border-radius:13px;padding:12px 4px 10px;text-align:center;
+      cursor:pointer;border:3px solid transparent;transition:transform .12s,filter .12s;
+      user-select:none;
+    }
+    .chute:hover:not(.locked){transform:translateY(-3px);}
+    .chute.locked{cursor:default;filter:brightness(.5);}
+    .chute.syn{background:linear-gradient(160deg,#173d12,#0d2509);border-color:#4caf50;}
+    .chute.ant{background:linear-gradient(160deg,#3d1212,#250909);border-color:#f44336;}
+    .chute.nei{background:linear-gradient(160deg,#1c1c1c,#111);border-color:#4a4a4a;}
+    .chute.syn:hover:not(.locked){box-shadow:0 0 16px rgba(76,175,80,.3);}
+    .chute.ant:hover:not(.locked){box-shadow:0 0 16px rgba(244,67,54,.3);}
+    .chute.nei:hover:not(.locked){box-shadow:0 0 16px rgba(100,100,100,.3);}
+    .ci{font-size:1.2rem;margin-bottom:4px;}
+    .cl{font-size:.56rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+    .chute.syn .cl{color:#4caf50;} .chute.ant .cl{color:#f44336;} .chute.nei .cl{color:#666;}
+    .cs{font-size:.5rem;color:#2a2a2a;margin-top:2px;}
+
+    .pp-foot{font-size:.64rem;color:#4a3018;text-align:center;padding:10px 0 14px;}
+    .pp-foot strong{color:#c8891e;}
+
+    /* PP Result */
+    .pp-result{
+      background:#160e04;min-height:640px;
+      display:none;flex-direction:column;align-items:center;
+      padding:28px 20px;
+    }
+    .res-trophy{font-size:3.5rem;margin-bottom:8px;animation:popIn .4s ease-out;}
+    .res-title{font-size:1.8rem;font-weight:900;color:#c8891e;margin-bottom:4px;}
+    .res-score{font-size:3.5rem;font-weight:900;color:#ffd060;margin:6px 0 2px;}
+    .res-score span{font-size:1.4rem;color:#5a4020;}
+    .res-sub{font-size:.8rem;color:#6a4820;margin-bottom:20px;}
+    .res-list{width:100%;display:flex;flex-direction:column;gap:7px;margin-bottom:22px;}
+    .res-row{
+      display:flex;align-items:center;gap:10px;
+      background:#0e0802;border:1px solid #2a1808;border-radius:9px;padding:9px 13px;
+      animation:fadeSlide .3s ease-out;
+    }
+    .ri{font-size:1.1rem;flex-shrink:0;}
+    .rword{font-size:.9rem;font-weight:800;color:#e8c080;flex:1;}
+    .rtype{font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px;}
+    .rtype.syn{background:#0d2a0d;color:#4caf50;border:1px solid #1e4a1e;}
+    .rtype.ant{background:#2a0d0d;color:#f44336;border:1px solid #4a1e1e;}
+    .rtype.nei{background:#1a1a1a;color:#888;border:1px solid #333;}
+    .replay-btn{
+      padding:13px 30px;border-radius:28px;border:none;
+      background:#c8891e;color:#fff;font-size:.9rem;font-weight:800;
+      cursor:pointer;font-family:inherit;transition:opacity .2s;
+    }
+    .replay-btn:hover{opacity:.85;}
+    .replay-btn.green{background:#2e6e2e;}
+
+    /* ══════════════════════════════════
+       BLOOM GARDEN
+    ══════════════════════════════════ */
+    .bg-screen{background:#07120a;min-height:640px;display:flex;flex-direction:column;align-items:center;position:relative;overflow:hidden;}
+    .glass-ceiling{
+      position:absolute;top:0;left:0;right:0;height:200px;pointer-events:none;
+      background:
+        repeating-linear-gradient(90deg,rgba(120,220,120,.05) 0,rgba(120,220,120,.05) 1px,transparent 1px,transparent 56px),
+        repeating-linear-gradient(180deg,rgba(120,220,120,.05) 0,rgba(120,220,120,.05) 1px,transparent 1px,transparent 56px);
+    }
+    .glass-bar{position:absolute;top:0;left:0;right:0;height:15px;background:linear-gradient(90deg,#1a3a1a,#2e5a2e,#1a3a1a);border-bottom:2px solid rgba(100,200,100,.2);}
+    .shaft{position:absolute;top:0;width:50px;opacity:.05;background:linear-gradient(180deg,#90ee90,transparent);pointer-events:none;}
+    .leaf-bg{position:absolute;opacity:.07;font-size:1.4rem;pointer-events:none;animation:ls 7s ease-in-out infinite;}
+    @keyframes ls{0%,100%{transform:rotate(0)translateY(0);}50%{transform:rotate(12deg)translateY(-10px);}}
+
+    .bg-header{width:100%;display:flex;justify-content:space-between;align-items:center;padding:22px 18px 10px;position:relative;z-index:2;}
+    .bg-badge{background:#1e5e1e;color:#90ee90;font-weight:800;font-size:.78rem;padding:4px 13px;border-radius:20px;border:1px solid #4caf50;}
+    .bg-score{color:#6abf6a;font-size:1rem;font-weight:800;}
+
+    /* Seeds */
+    .seeds-area{width:100%;height:150px;position:relative;z-index:2;display:flex;align-items:center;justify-content:center;}
+    .seed{
+      width:82px;height:82px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      cursor:default;transition:transform .2s,box-shadow .2s;
+      animation:seedFloat 2.8s ease-in-out infinite;
+    }
+    @keyframes seedFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+    .seed.correct-s{animation:none!important;box-shadow:0 0 30px rgba(76,175,80,.8)!important;transform:scale(1.08)!important;}
+    .seed.wrong-s{animation:jolt .35s ease-out!important;box-shadow:0 0 24px rgba(244,67,54,.7)!important;}
+    .seed-word-text{font-size:.78rem;font-weight:900;letter-spacing:.5px;text-align:center;line-height:1.2;}
+
+    /* Pot */
+    .pot-section{display:flex;flex-direction:column;align-items:center;position:relative;z-index:2;margin-bottom:12px;}
+    .pot-lbl{font-size:.56rem;color:#3a6a3a;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+    .pot-word{
+      background:linear-gradient(145deg,#1a3d1a,#0d2a0d);border:3px solid #4caf50;border-radius:11px;
+      padding:9px 26px;font-size:1.9rem;font-weight:900;color:#a8e6a8;letter-spacing:4px;
+      text-shadow:0 0 20px rgba(76,175,80,.55);box-shadow:0 0 22px rgba(76,175,80,.15);
+    }
+    .stem{width:5px;height:20px;background:#2e6e2e;margin:4px auto 0;border-radius:2px;}
+    .pot-rim{width:72px;height:10px;background:linear-gradient(160deg,#d45a18,#a03808);border-radius:5px;margin:0 auto;}
+    .pot-body{width:64px;height:44px;background:linear-gradient(160deg,#c04414,#8B2200);border-radius:4px 4px 10px 10px;border:2px solid #903210;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin:0 auto;}
+
+    /* Beds */
+    .beds{display:flex;gap:8px;width:88%;margin:0 auto;position:relative;z-index:2;}
+    .bed{
+      flex:1;border-radius:13px;padding:11px 4px 18px;text-align:center;
+      cursor:pointer;border:3px solid transparent;
+      transition:transform .12s,filter .12s;user-select:none;position:relative;overflow:hidden;
+    }
+    .bed:hover:not(.locked){transform:translateY(-3px);}
+    .bed.locked{cursor:default;filter:brightness(.5);}
+    .bed.syn{background:linear-gradient(160deg,#173d12,#0d2509);border-color:#66bb6a;}
+    .bed.ant{background:linear-gradient(160deg,#28103c,#180a24);border-color:#ab47bc;}
+    .bed.nei{background:linear-gradient(160deg,#1a1c10,#10120a);border-color:#6a6a4a;}
+    .bed.syn:hover:not(.locked){box-shadow:0 0 16px rgba(102,187,106,.3);}
+    .bed.ant:hover:not(.locked){box-shadow:0 0 16px rgba(171,71,188,.3);}
+    .bed.nei:hover:not(.locked){box-shadow:0 0 16px rgba(100,100,70,.3);}
+    .bed::after{content:'';position:absolute;bottom:0;left:0;right:0;height:7px;border-radius:0 0 10px 10px;}
+    .bed.syn::after{background:repeating-linear-gradient(90deg,#3d2a10 0,#3d2a10 5px,#2a1a06 5px,#2a1a06 10px);}
+    .bed.ant::after{background:repeating-linear-gradient(90deg,#2a1040 0,#2a1040 5px,#1a0828 5px,#1a0828 10px);}
+    .bed.nei::after{background:repeating-linear-gradient(90deg,#2a2a1a 0,#2a2a1a 5px,#1a1a10 5px,#1a1a10 10px);}
+    .bf{font-size:1rem;margin-bottom:4px;}
+    .bl{font-size:.56rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+    .bed.syn .bl{color:#66bb6a;} .bed.ant .bl{color:#ab47bc;} .bed.nei .bl{color:#8a8a5a;}
+    .bs{font-size:.5rem;color:#2a2a1a;margin-top:2px;}
+
+    /* BG Feedback */
+    .bg-feedback{
+      width:88%;margin:8px auto 0;min-height:36px;position:relative;z-index:2;
+      font-size:.72rem;line-height:1.45;text-align:center;color:#555;
+      border-radius:8px;padding:6px 10px;
+    }
+    .bg-feedback.ok{background:#0d2a0d;color:#6abf6a;border:1px solid #1e4a1e;animation:fadeSlide .25s ease-out;}
+    .bg-feedback.ng{background:#2a0d0d;color:#e06060;border:1px solid #4a1e1e;animation:fadeSlide .25s ease-out;}
+    .bg-feedback.to{background:#1a1a0d;color:#aa8840;border:1px solid #3a3a1e;animation:fadeSlide .25s ease-out;}
+
+    .bg-foot{font-size:.64rem;color:#2e5a2e;text-align:center;padding:8px 0 14px;position:relative;z-index:2;}
+    .bg-foot strong{color:#66bb6a;}
+
+    /* BG Result */
+    .bg-result{
+      background:#07120a;min-height:640px;
+      display:none;flex-direction:column;align-items:center;
+      padding:28px 20px;position:relative;
+    }
+  </style>
+</head>
+<body>
+
+<div class="tab-bar">
+  <button class="tab-btn pp-active" id="btn-pp" onclick="switchGame('pp')">📦 Parcel Post</button>
+  <button class="tab-btn" id="btn-bg" onclick="switchGame('bg')">🌸 Bloom Garden</button>
+</div>
+
+<!-- ══ PARCEL POST ═══════════════════════════════════ -->
+<div class="mockup active" id="m-pp">
+  <div class="phone">
+
+    <!-- Game screen -->
+    <div class="pp-screen" id="pp-game">
+      <div class="pp-header">
+        <div class="pp-badge">Grade 5</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="dots" id="pp-dots"></div>
+          <div class="pp-score" id="pp-score-val">0 pts</div>
+        </div>
+      </div>
+      <div class="timer-bar"><div class="timer-fill tf-pp" id="pp-timer-fill" style="width:100%"></div></div>
+
+      <div class="pp-board">
+        <div class="blbl">📮 sort each parcel — does it match...</div>
+        <div class="btgt">HAPPY</div>
+        <div class="bsub">Tap the correct chute for the arriving parcel</div>
+      </div>
+
+      <div class="belt-wrap">
+        <div class="belt-rail"></div>
+        <div class="belt-surface">
+          <div class="parcel dim" id="pp-prev"><div class="pw" id="pp-prev-w">—</div><div class="pstamp" id="pp-prev-stamp"></div></div>
+          <div class="belt-arrow">›</div>
+          <div class="parcel now" id="pp-now"><div class="pw" id="pp-now-w">JOYFUL</div><div class="pstamp" id="pp-now-stamp"></div></div>
+          <div class="belt-arrow">›</div>
+          <div class="parcel dim" id="pp-next"><div class="pw" id="pp-next-w">MISERABLE</div></div>
+        </div>
+        <div class="belt-rail"></div>
+      </div>
+
+      <div class="pp-feedback" id="pp-feedback"></div>
+
+      <div class="pp-chutes">
+        <div class="chute syn" id="pp-syn" onclick="ppTap('syn')">
+          <div class="ci">📥</div><div class="cl">Synonym</div><div class="cs">Same meaning</div>
+        </div>
+        <div class="chute ant" id="pp-ant" onclick="ppTap('ant')">
+          <div class="ci">📤</div><div class="cl">Antonym</div><div class="cs">Opposite</div>
+        </div>
+        <div class="chute nei" id="pp-nei" onclick="ppTap('nei')">
+          <div class="ci">🗑️</div><div class="cl">Neither</div><div class="cs">No match</div>
+        </div>
+      </div>
+
+      <div class="pp-foot" id="pp-foot">Round 1 &nbsp;·&nbsp; <strong>10s</strong> per parcel</div>
+    </div>
+
+    <!-- Result screen -->
+    <div class="pp-result" id="pp-result">
+      <div class="res-trophy">📦</div>
+      <div class="res-title">SORTING DONE!</div>
+      <div class="res-score" id="pp-res-score">0<span>/50</span></div>
+      <div class="res-sub" id="pp-res-sub">0 correct out of 5</div>
+      <div class="res-list" id="pp-res-list"></div>
+      <button class="replay-btn" onclick="initPP()">Play Again 🔄</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ BLOOM GARDEN ══════════════════════════════════ -->
+<div class="mockup" id="m-bg">
+  <div class="phone">
+
+    <!-- Game screen -->
+    <div class="bg-screen" id="bg-game">
+      <div class="glass-ceiling"></div>
+      <div class="glass-bar"></div>
+      <div class="shaft" style="left:14%;height:240px;"></div>
+      <div class="shaft" style="left:47%;height:190px;"></div>
+      <div class="shaft" style="left:74%;height:220px;"></div>
+      <div class="leaf-bg" style="top:220px;left:8px;animation-delay:0s">🍃</div>
+      <div class="leaf-bg" style="top:270px;right:8px;animation-delay:3s">🌿</div>
+
+      <div class="bg-header">
+        <div class="bg-badge">Grade 5</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="dots" id="bg-dots"></div>
+          <div class="bg-score" id="bg-score-val">0 pts</div>
+        </div>
+      </div>
+      <div class="timer-bar" style="margin-bottom:6px"><div class="timer-fill tf-bg" id="bg-timer-fill" style="width:100%"></div></div>
+
+      <div class="seeds-area">
+        <div class="seed" id="bg-seed" style="background:radial-gradient(circle at 35% 35%,#ffe066,#e8a800);box-shadow:0 0 16px rgba(255,200,0,.5)">
+          <div class="seed-word-text" id="bg-seed-word" style="color:#3a2800">BOLD</div>
+        </div>
+      </div>
+
+      <div class="pot-section">
+        <div class="pot-lbl">🌱 tap the right bed for each seed</div>
+        <div class="pot-word">BRAVE</div>
+        <div class="stem"></div>
+        <div class="pot-rim"></div>
+        <div class="pot-body">🪴</div>
+      </div>
+
+      <div class="beds">
+        <div class="bed syn" id="bg-syn" onclick="bgTap('syn')">
+          <div class="bf">🌻🌼</div><div class="bl">Synonym</div><div class="bs">Same meaning</div>
+        </div>
+        <div class="bed ant" id="bg-ant" onclick="bgTap('ant')">
+          <div class="bf">🌹🌷</div><div class="bl">Antonym</div><div class="bs">Opposite</div>
+        </div>
+        <div class="bed nei" id="bg-nei" onclick="bgTap('nei')">
+          <div class="bf">🌾🍂</div><div class="bl">Neither</div><div class="bs">No match</div>
+        </div>
+      </div>
+
+      <div class="bg-feedback" id="bg-feedback"></div>
+      <div class="bg-foot" id="bg-foot">Round 1 &nbsp;·&nbsp; <strong>10s</strong> per seed</div>
+    </div>
+
+    <!-- Result screen -->
+    <div class="bg-result" id="bg-result">
+      <div class="res-trophy" style="margin-top:20px">🌸</div>
+      <div class="res-title" style="color:#4caf50">GARDEN DONE!</div>
+      <div class="res-score" id="bg-res-score" style="color:#a8e6a8">0<span style="color:#2e5e2e">/50</span></div>
+      <div class="res-sub" id="bg-res-sub" style="color:#3a6a3a">0 correct out of 5</div>
+      <div class="res-list" id="bg-res-list"></div>
+      <button class="replay-btn green" onclick="initBG()">Play Again 🔄</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Data ─────────────────────────────────────────────────────────────────────
+const PP_DATA = {
+  target: 'HAPPY',
+  words: [
+    {word:'JOYFUL',   type:'syn', explain:'JOYFUL means feeling great happiness — a synonym of HAPPY.'},
+    {word:'MISERABLE',type:'ant', explain:'MISERABLE means very unhappy and distressed — the opposite of HAPPY.'},
+    {word:'GRATEFUL', type:'nei', explain:'GRATEFUL means thankful for something received — not the same as feeling happy.'},
+    {word:'GLAD',     type:'syn', explain:'GLAD means pleased and happy — a synonym of HAPPY.'},
+    {word:'GLOOMY',   type:'ant', explain:'GLOOMY means dark, sad, and without hope — the opposite of HAPPY.'},
+  ]
+};
+
+const BG_DATA = {
+  target: 'BRAVE',
+  words: [
+    {word:'BOLD',     type:'syn', explain:'BOLD means confidently ready to face risks — a synonym of BRAVE.'},
+    {word:'TIMID',    type:'ant', explain:'TIMID means showing lack of courage or confidence — the opposite of BRAVE.'},
+    {word:'WISE',     type:'nei', explain:'WISE means having good knowledge and judgement — a different quality from being brave.'},
+    {word:'FEARLESS', type:'syn', explain:'FEARLESS means having no fear at all — a synonym of BRAVE.'},
+    {word:'COWARDLY', type:'ant', explain:'COWARDLY means lacking courage when it is needed — the opposite of BRAVE.'},
+  ]
+};
+
+const TYPE_LABELS = {syn:'Synonym', ant:'Antonym', nei:'Neither'};
+const SEED_STYLES = [
+  {bg:'radial-gradient(circle at 35% 35%,#ffe066,#e8a800)', shadow:'rgba(255,200,0,.5)', text:'#3a2800'},
+  {bg:'radial-gradient(circle at 35% 35%,#ffb3b3,#d44040)', shadow:'rgba(200,60,60,.45)', text:'#fff'},
+  {bg:'radial-gradient(circle at 35% 35%,#c8b4f0,#7040c0)', shadow:'rgba(120,60,200,.4)', text:'#fff'},
+  {bg:'radial-gradient(circle at 35% 35%,#b4e4f0,#3090c0)', shadow:'rgba(48,144,192,.4)', text:'#fff'},
+  {bg:'radial-gradient(circle at 35% 35%,#d0f0d0,#3aaa3a)', shadow:'rgba(60,180,60,.4)', text:'#1a3a1a'},
+];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let pp = {idx:0,score:0,results:[],answered:false,timer:null,timeLeft:10};
+let bg = {idx:0,score:0,results:[],answered:false,timer:null,timeLeft:10};
+
+// ── Tab switch ────────────────────────────────────────────────────────────────
+function switchGame(game) {
+  document.querySelectorAll('.mockup').forEach(m=>m.classList.remove('active'));
+  document.getElementById('m-'+game).classList.add('active');
+  document.getElementById('btn-pp').className='tab-btn'+(game==='pp'?' pp-active':'');
+  document.getElementById('btn-bg').className='tab-btn'+(game==='bg'?' bg-active':'');
+}
+
+// ── Dots ─────────────────────────────────────────────────────────────────────
+function renderDots(containerId, results, totalWords, activeClass) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  for (let i = 0; i < totalWords; i++) {
+    const d = document.createElement('div');
+    if (i < results.length) {
+      d.className = 'dot ' + (results[i].correct ? 'correct-dot' : 'wrong-dot');
+    } else {
+      d.className = 'dot ' + activeClass;
+    }
+    el.appendChild(d);
+  }
+}
+
+// ── PARCEL POST ───────────────────────────────────────────────────────────────
+function initPP() {
+  pp = {idx:0, score:0, results:[], answered:false, timer:null, timeLeft:10};
+  document.getElementById('pp-game').style.display='flex';
+  document.getElementById('pp-result').style.display='none';
+  lockChutes('pp', false);
+  renderDots('pp-dots', [], PP_DATA.words.length, 'pp-on');
+  updatePPBelt();
+  startPPTimer();
+}
+
+function updatePPBelt() {
+  const words = PP_DATA.words;
+  const idx = pp.idx;
+
+  // Previous
+  const prevW = document.getElementById('pp-prev-w');
+  const prevStamp = document.getElementById('pp-prev-stamp');
+  const prevParcel = document.getElementById('pp-prev');
+  if (idx > 0) {
+    const r = pp.results[idx-1];
+    prevW.textContent = words[idx-1].word;
+    prevParcel.style.opacity = '.35';
+    prevStamp.style.display='flex';
+    prevStamp.textContent = r.correct ? '✓' : '✗';
+    prevStamp.style.background = r.correct ? '#27ae60' : '#c0392b';
+  } else {
+    prevW.textContent = '—';
+    prevParcel.style.opacity = '.15';
+    prevStamp.style.display='none';
+  }
+
+  // Current
+  const nowEl = document.getElementById('pp-now');
+  const nowStamp = document.getElementById('pp-now-stamp');
+  document.getElementById('pp-now-w').textContent = words[idx].word;
+  nowEl.className = 'parcel now';
+  nowStamp.style.display = 'none';
+
+  // Next
+  const nextW = document.getElementById('pp-next-w');
+  if (idx < words.length-1) {
+    nextW.textContent = words[idx+1].word;
+    document.getElementById('pp-next').style.opacity='.3';
+  } else {
+    nextW.textContent = '—';
+    document.getElementById('pp-next').style.opacity='.1';
+  }
+
+  document.getElementById('pp-score-val').textContent = pp.score+' pts';
+  document.getElementById('pp-foot').innerHTML = `Word ${idx+1} of ${words.length} &nbsp;·&nbsp; <strong>10s</strong> per parcel`;
+  document.getElementById('pp-feedback').textContent='';
+  document.getElementById('pp-feedback').className='pp-feedback';
+  renderDots('pp-dots', pp.results, words.length, 'pp-on');
+}
+
+function startPPTimer() {
+  pp.timeLeft = 10;
+  updatePPTimer();
+  clearInterval(pp.timer);
+  pp.timer = setInterval(()=>{
+    pp.timeLeft--;
+    updatePPTimer();
+    if (pp.timeLeft <= 0) { clearInterval(pp.timer); if (!pp.answered) ppTimeout(); }
+  }, 1000);
+}
+
+function updatePPTimer() {
+  document.getElementById('pp-timer-fill').style.width = (pp.timeLeft/10*100)+'%';
+}
+
+function ppTimeout() {
+  pp.answered = true;
+  lockChutes('pp', true);
+  const word = PP_DATA.words[pp.idx];
+  pp.results.push({correct:false, word:word.word, type:word.type});
+  const nowEl = document.getElementById('pp-now');
+  nowEl.className='parcel now wrong-p';
+  const stamp = document.getElementById('pp-now-stamp');
+  stamp.style.display='flex'; stamp.textContent='✗'; stamp.style.background='#c0392b';
+  showFeedback('pp','to','⏰ Time\'s up! &nbsp;It was a <strong>'+TYPE_LABELS[word.type]+'</strong>. '+word.explain);
+  setTimeout(ppAdvance, 1200);
+}
+
+function ppTap(type) {
+  if (pp.answered) return;
+  pp.answered = true;
+  clearInterval(pp.timer);
+  lockChutes('pp', true);
+
+  const word = PP_DATA.words[pp.idx];
+  const correct = type === word.type;
+  pp.results.push({correct, word:word.word, type:word.type});
+  if (correct) pp.score += 10;
+
+  const nowEl = document.getElementById('pp-now');
+  const stamp = document.getElementById('pp-now-stamp');
+  stamp.style.display='flex';
+
+  if (correct) {
+    nowEl.className='parcel now correct-p';
+    stamp.textContent='✓'; stamp.style.background='#27ae60';
+    showFeedback('pp','ok','✅ Correct! '+word.explain);
+  } else {
+    nowEl.className='parcel now wrong-p';
+    stamp.textContent='✗'; stamp.style.background='#c0392b';
+    showFeedback('pp','ng','❌ That\'s a <strong>'+TYPE_LABELS[word.type]+'</strong>. '+word.explain);
+  }
+
+  renderDots('pp-dots', pp.results, PP_DATA.words.length, 'pp-on');
+  setTimeout(ppAdvance, 1300);
+}
+
+function ppAdvance() {
+  pp.idx++;
+  pp.answered = false;
+  if (pp.idx >= PP_DATA.words.length) { showPPResult(); return; }
+  lockChutes('pp', false);
+  updatePPBelt();
+  startPPTimer();
+}
+
+function showPPResult() {
+  clearInterval(pp.timer);
+  document.getElementById('pp-game').style.display='none';
+  const res = document.getElementById('pp-result');
+  res.style.display='flex';
+
+  const correct = pp.results.filter(r=>r.correct).length;
+  document.getElementById('pp-res-score').innerHTML = pp.score+'<span>/50</span>';
+  document.getElementById('pp-res-sub').textContent = correct+' correct out of 5';
+
+  const list = document.getElementById('pp-res-list');
+  list.innerHTML='';
+  pp.results.forEach(r=>{
+    const row=document.createElement('div');
+    row.className='res-row';
+    row.style.animationDelay = (pp.results.indexOf(r)*0.07)+'s';
+    row.innerHTML=`<div class="ri">${r.correct?'✅':'❌'}</div><div class="rword">${r.word}</div><div class="rtype ${r.type}">${TYPE_LABELS[r.type]}</div>`;
+    list.appendChild(row);
+  });
+}
+
+// ── BLOOM GARDEN ──────────────────────────────────────────────────────────────
+function initBG() {
+  bg = {idx:0, score:0, results:[], answered:false, timer:null, timeLeft:10};
+  document.getElementById('bg-game').style.display='flex';
+  document.getElementById('bg-result').style.display='none';
+  lockChutes('bg', false);
+  renderDots('bg-dots', [], BG_DATA.words.length, 'bg-on');
+  updateBGSeed();
+  startBGTimer();
+}
+
+function updateBGSeed() {
+  const words = BG_DATA.words;
+  const idx = bg.idx;
+  const style = SEED_STYLES[idx % SEED_STYLES.length];
+  const seed = document.getElementById('bg-seed');
+  seed.style.background = style.bg;
+  seed.style.boxShadow = '0 0 16px '+style.shadow;
+  seed.className = 'seed';
+  document.getElementById('bg-seed-word').textContent = words[idx].word;
+  document.getElementById('bg-seed-word').style.color = style.text;
+
+  document.getElementById('bg-score-val').textContent = bg.score+' pts';
+  document.getElementById('bg-foot').innerHTML = `Seed ${idx+1} of ${words.length} &nbsp;·&nbsp; <strong>10s</strong> per seed`;
+  document.getElementById('bg-feedback').textContent='';
+  document.getElementById('bg-feedback').className='bg-feedback';
+  renderDots('bg-dots', bg.results, words.length, 'bg-on');
+}
+
+function startBGTimer() {
+  bg.timeLeft = 10;
+  updateBGTimer();
+  clearInterval(bg.timer);
+  bg.timer = setInterval(()=>{
+    bg.timeLeft--;
+    updateBGTimer();
+    if (bg.timeLeft<=0) { clearInterval(bg.timer); if (!bg.answered) bgTimeout(); }
+  }, 1000);
+}
+
+function updateBGTimer() {
+  document.getElementById('bg-timer-fill').style.width = (bg.timeLeft/10*100)+'%';
+}
+
+function bgTimeout() {
+  bg.answered = true;
+  lockChutes('bg', true);
+  const word = BG_DATA.words[bg.idx];
+  bg.results.push({correct:false, word:word.word, type:word.type});
+  document.getElementById('bg-seed').className='seed wrong-s';
+  showFeedback('bg','to','⏰ Time\'s up! &nbsp;It was a <strong>'+TYPE_LABELS[word.type]+'</strong>. '+word.explain);
+  setTimeout(bgAdvance, 1200);
+}
+
+function bgTap(type) {
+  if (bg.answered) return;
+  bg.answered = true;
+  clearInterval(bg.timer);
+  lockChutes('bg', true);
+
+  const word = BG_DATA.words[bg.idx];
+  const correct = type === word.type;
+  bg.results.push({correct, word:word.word, type:word.type});
+  if (correct) bg.score += 10;
+
+  const seed = document.getElementById('bg-seed');
+  if (correct) {
+    seed.className='seed correct-s';
+    showFeedback('bg','ok','✅ Correct! '+word.explain);
+  } else {
+    seed.className='seed wrong-s';
+    showFeedback('bg','ng','❌ That\'s a <strong>'+TYPE_LABELS[word.type]+'</strong>. '+word.explain);
+  }
+
+  renderDots('bg-dots', bg.results, BG_DATA.words.length, 'bg-on');
+  setTimeout(bgAdvance, 1300);
+}
+
+function bgAdvance() {
+  bg.idx++;
+  bg.answered = false;
+  if (bg.idx >= BG_DATA.words.length) { showBGResult(); return; }
+  lockChutes('bg', false);
+  updateBGSeed();
+  startBGTimer();
+}
+
+function showBGResult() {
+  clearInterval(bg.timer);
+  document.getElementById('bg-game').style.display='none';
+  const res = document.getElementById('bg-result');
+  res.style.display='flex';
+
+  const correct = bg.results.filter(r=>r.correct).length;
+  document.getElementById('bg-res-score').innerHTML = bg.score+'<span style="color:#2e5e2e">/50</span>';
+  document.getElementById('bg-res-sub').textContent = correct+' correct out of 5';
+
+  const list = document.getElementById('bg-res-list');
+  list.innerHTML='';
+  bg.results.forEach(r=>{
+    const row=document.createElement('div');
+    row.className='res-row';
+    row.style.background='#060f06'; row.style.borderColor='#1a2e1a';
+    row.innerHTML=`<div class="ri">${r.correct?'✅':'❌'}</div><div class="rword" style="color:#90ee90">${r.word}</div><div class="rtype ${r.type}">${TYPE_LABELS[r.type]}</div>`;
+    list.appendChild(row);
+  });
+}
+
+// ── Shared helpers ────────────────────────────────────────────────────────────
+function lockChutes(game, lock) {
+  const ids = game==='pp'
+    ? ['pp-syn','pp-ant','pp-nei']
+    : ['bg-syn','bg-ant','bg-nei'];
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    if (lock) el.classList.add('locked'); else el.classList.remove('locked');
+  });
+}
+
+function showFeedback(game, cls, html) {
+  const el = document.getElementById(game+'-feedback');
+  el.className = game+'-feedback '+cls;
+  el.innerHTML = html;
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+initPP();
+initBG();
+</script>
+</body>
+</html>

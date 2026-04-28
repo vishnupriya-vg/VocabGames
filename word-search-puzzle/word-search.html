@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Word Search Puzzle</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#070714;color:#dde0ff;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* ── SCREENS ── */
+.screen{display:none;flex-direction:column;min-height:100vh;}
+.screen.active{display:flex;}
+
+/* ── HOME ── */
+#scr-home{align-items:center;justify-content:flex-start;padding:32px 16px 40px;
+  background:radial-gradient(ellipse at 50% 28%,#0e0e38 0%,#070714 65%);position:relative;overflow:hidden;}
+#scr-home::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(1px 1px at 8% 12%,rgba(255,255,255,.9) 0%,transparent 100%),
+    radial-gradient(1px 1px at 22% 78%,rgba(255,255,255,.7) 0%,transparent 100%),
+    radial-gradient(1px 1px at 37% 5%,rgba(255,255,255,.8) 0%,transparent 100%),
+    radial-gradient(1px 1px at 51% 44%,rgba(255,255,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 63% 88%,rgba(255,255,255,.8) 0%,transparent 100%),
+    radial-gradient(1px 1px at 74% 23%,rgba(255,255,255,.7) 0%,transparent 100%),
+    radial-gradient(1px 1px at 88% 62%,rgba(255,255,255,.9) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 30% 30%,rgba(180,180,255,.8) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 70% 55%,rgba(180,220,255,.7) 0%,transparent 100%);}
+.home-body{position:relative;z-index:1;width:100%;max-width:680px;display:flex;flex-direction:column;align-items:center;}
+.home-icon{font-size:3.2rem;margin-bottom:10px;animation:spin 24s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.home-title{font-size:clamp(1.4rem,5.5vw,2.4rem);font-weight:900;letter-spacing:3px;text-align:center;
+  background:linear-gradient(90deg,#8888ff,#cc88ff,#88ddff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;}
+.home-sub{color:#6060aa;font-size:.82rem;letter-spacing:2px;margin-bottom:34px;text-transform:uppercase;}
+.grade-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;width:100%;}
+.gc{background:linear-gradient(145deg,#131338,#1b1b4a);border:1px solid #242462;
+  border-radius:13px;padding:18px 10px;text-align:center;cursor:pointer;
+  transition:transform .2s,box-shadow .2s,border-color .2s;position:relative;overflow:hidden;}
+.gc::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 60%,rgba(120,100,255,.07));pointer-events:none;}
+.gc:hover{transform:translateY(-5px) scale(1.03);} .gc:active{transform:scale(.96);}
+.gc3 .gn{color:#55ffaa;} .gc3:hover{box-shadow:0 8px 24px rgba(30,180,90,.3);border-color:#336644;}
+.gc4 .gn{color:#55ddff;} .gc4:hover{box-shadow:0 8px 24px rgba(30,140,210,.3);border-color:#335577;}
+.gc5 .gn{color:#9988ff;} .gc5:hover{box-shadow:0 8px 24px rgba(80,70,230,.3);border-color:#554499;}
+.gc6 .gn{color:#cc77ff;} .gc6:hover{box-shadow:0 8px 24px rgba(160,60,230,.3);border-color:#773399;}
+.gc7 .gn{color:#ffaa44;} .gc7:hover{box-shadow:0 8px 24px rgba(210,120,20,.3);border-color:#996622;}
+.gc8 .gn{color:#ff5566;} .gc8:hover{box-shadow:0 8px 24px rgba(210,40,60,.3);border-color:#992233;}
+.gn{font-size:clamp(1.8rem,4.5vw,2.6rem);font-weight:900;line-height:1;margin-bottom:3px;}
+.gl{font-size:.68rem;color:#7070aa;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
+.gd{font-size:.78rem;font-weight:700;margin-bottom:5px;}
+.gs{font-size:.76rem;margin-bottom:5px;}
+.gdesc{font-size:.66rem;color:#55558a;line-height:1.3;}
+
+/* ── PACK SCREEN ── */
+#scr-packs{align-items:center;padding:24px 16px 36px;
+  background:radial-gradient(ellipse at 50% 20%,#0e0e38 0%,#070714 65%);}
+.nav-hdr{width:100%;max-width:760px;display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.btn-nav{background:#1a1a4a;border:1px solid #38388a;color:#aaaae8;
+  padding:7px 14px;border-radius:7px;font-size:.8rem;font-weight:700;cursor:pointer;
+  transition:background .15s;flex-shrink:0;}
+.btn-nav:hover{background:#28286a;color:#fff;} .btn-nav:active{transform:scale(.93);}
+.nav-title{flex:1;font-size:clamp(.9rem,3vw,1.2rem);font-weight:800;letter-spacing:1px;
+  background:linear-gradient(90deg,#8888ff,#cc88ff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.pack-label{color:#6060aa;font-size:.8rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;}
+.pack-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:13px;width:100%;max-width:760px;}
+.pack-card{background:#13133a;border:1px solid #333;border-radius:12px;
+  padding:18px 12px;text-align:center;cursor:pointer;
+  transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden;}
+.pack-card:hover{transform:translateY(-5px) scale(1.02);}
+.pack-card:active{transform:scale(.95);}
+.pack-icon{font-size:2rem;margin-bottom:8px;}
+.pack-name{font-size:.85rem;font-weight:700;color:#ccc;margin-bottom:4px;}
+.pack-desc{font-size:.68rem;color:#6666aa;line-height:1.3;margin-bottom:6px;}
+.pack-words{font-size:.65rem;color:#555588;letter-spacing:.5px;}
+
+/* ── GAME ── */
+#scr-game{background:#070714;}
+.ghdr{background:linear-gradient(135deg,#13133a,#090920);padding:8px 14px;
+  display:flex;align-items:center;gap:10px;border-bottom:1px solid #222260;
+  box-shadow:0 2px 16px rgba(80,80,255,.18);}
+.btn-home{background:#1a1a4a;border:1px solid #38388a;color:#aaaae8;
+  padding:6px 13px;border-radius:7px;font-size:.78rem;font-weight:700;cursor:pointer;
+  transition:background .15s;flex-shrink:0;white-space:nowrap;}
+.btn-home:hover{background:#28286a;color:#fff;} .btn-home:active{transform:scale(.93);}
+.gtitle{flex:1;text-align:center;font-size:clamp(.8rem,3vw,1.1rem);font-weight:800;letter-spacing:2px;
+  background:linear-gradient(90deg,#8888ff,#cc88ff,#88ddff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.gbadge{background:#242465;border:1px solid #4444aa;color:#9999ff;
+  padding:4px 9px;border-radius:6px;font-size:.72rem;font-weight:700;flex-shrink:0;white-space:nowrap;}
+.stats-bar{background:#0b0b22;padding:7px 12px;display:flex;
+  justify-content:center;flex-wrap:wrap;gap:14px;border-bottom:1px solid #1a1a46;}
+.stat{font-size:.8rem;color:#9090bb;} .stat b{color:#9999ff;font-weight:700;}
+.main{display:flex;flex-wrap:wrap;gap:14px;padding:14px;
+  justify-content:center;max-width:1020px;margin:0 auto;flex:1;}
+.grid-area{display:flex;flex-direction:column;align-items:center;gap:10px;}
+#grid{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;
+  background:#13133a;border:1px solid #252570;border-radius:10px;padding:7px;
+  user-select:none;-webkit-user-select:none;touch-action:none;
+  box-shadow:0 0 24px rgba(60,60,200,.15);}
+.cell{width:clamp(30px,7vw,46px);height:clamp(30px,7vw,46px);display:flex;
+  align-items:center;justify-content:center;font-size:clamp(.65rem,2vw,1rem);
+  font-weight:700;border-radius:3px;background:#0b0b22;color:#777799;cursor:pointer;
+  transition:background .07s,color .07s;}
+.cell.sel{background:#3535a0;color:#fff;box-shadow:0 0 5px rgba(100,100,255,.5);}
+.cell.hint{background:#62259e;color:#ffe500;animation:hp .45s ease-in-out infinite alternate;}
+.cell.hperm{background:#5a4000;color:#ffdd33;box-shadow:0 0 7px #cc8800;}
+@keyframes hp{from{transform:scale(1);box-shadow:none}to{transform:scale(1.12);box-shadow:0 0 10px #cc55ff}}
+.cell.f0{background:#c03030;color:#fff} .cell.f1{background:#c07020;color:#fff}
+.cell.f2{background:#22a840;color:#fff} .cell.f3{background:#2050cc;color:#fff}
+.cell.f4{background:#7020cc;color:#fff} .cell.f5{background:#cc20a8;color:#fff}
+#grid.wrong{animation:wfx .35s ease;}
+@keyframes wfx{0%,100%{background:#13133a}50%{background:#3a0a0a}}
+.controls{display:flex;gap:10px;flex-direction:column;align-items:center;}
+.hint-cost{font-size:.68rem;color:#9966cc;letter-spacing:.3px;transition:color .3s;}
+.clue-item.hinting{background:#170f3a;border:1px solid #4433aa;}
+.clue-item.hinting.revealed{background:#1a1000;border:1px solid #664400;}
+.hint-lvl{font-size:.65rem;padding:2px 7px;border-radius:3px;margin-top:4px;
+  display:inline-block;background:#1e0e40;color:#bb88ff;letter-spacing:.3px;}
+.hint-lvl.lvl3{background:#2a1800;color:#ffcc44;}
+.btn{padding:9px 20px;border:none;border-radius:8px;font-size:.84rem;font-weight:700;
+  cursor:pointer;letter-spacing:.4px;transition:transform .1s,box-shadow .15s;}
+.btn:active{transform:scale(.93);}
+.btn-hint{background:linear-gradient(135deg,#5c1fcc,#9933ee);color:#fff;}
+.btn-undo{background:linear-gradient(135deg,#1e2e66,#2d4faa);color:#fff;}
+.btn:hover{box-shadow:0 0 14px rgba(110,90,255,.5);}
+.btn-row{display:flex;gap:10px;}
+.clue-panel{flex:1;min-width:230px;max-width:360px;background:#0b0b22;
+  border-radius:10px;border:1px solid #222260;padding:12px 13px;
+  max-height:calc(100vh - 125px);overflow-y:auto;}
+.clue-panel::-webkit-scrollbar{width:4px;}
+.clue-panel::-webkit-scrollbar-thumb{background:#303080;border-radius:4px;}
+.clue-ph{font-size:.9rem;color:#7777ee;margin-bottom:10px;padding-bottom:6px;
+  border-bottom:1px solid #1e1e55;letter-spacing:1px;}
+.clue-item{display:flex;align-items:flex-start;gap:8px;padding:9px 9px;
+  margin-bottom:6px;border-radius:7px;background:#14143a;transition:background .25s;}
+.clue-item.done{background:#122a1a;}
+.badge{min-width:22px;height:22px;border-radius:50%;background:#202066;color:#8888ee;
+  font-size:.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:background .25s,color .25s;}
+.clue-item.done .badge{background:#1e6640;color:#aaffaa;}
+.clue-body{}
+.clue-text{font-size:.78rem;line-height:1.45;color:#aaaacc;}
+.clue-item.done .clue-text{color:#77cc77;}
+.root-tag{display:inline-block;background:#2a1a00;color:#ffaa44;
+  font-size:.62rem;font-weight:700;padding:1px 5px;border-radius:4px;margin-bottom:3px;letter-spacing:.5px;}
+.sci-tag{display:inline-block;background:#001e22;color:#22ddee;
+  font-size:.62rem;font-weight:700;padding:1px 5px;border-radius:4px;margin-bottom:3px;letter-spacing:.5px;}
+.syn-tag{display:inline-block;background:#1a1a00;color:#eeee22;
+  font-size:.62rem;font-weight:700;padding:1px 5px;border-radius:4px;margin-bottom:3px;letter-spacing:.5px;}
+.ant-tag{display:inline-block;background:#220011;color:#ff4488;
+  font-size:.62rem;font-weight:700;padding:1px 5px;border-radius:4px;margin-bottom:3px;letter-spacing:.5px;}
+.clue-answer{font-size:.72rem;font-weight:700;color:#44ee55;margin-top:3px;}
+
+/* ── CELEBRATION ── */
+#cel{display:none;position:fixed;inset:0;background:rgba(4,4,18,.88);
+  z-index:300;align-items:center;justify-content:center;}
+#cel.on{display:flex;}
+.cel-box{background:linear-gradient(135deg,#13133a,#1c1c50);border:1px solid #5555bb;
+  border-radius:18px;padding:36px 44px;text-align:center;
+  animation:cpop .5s cubic-bezier(.175,.885,.32,1.275);box-shadow:0 0 50px rgba(90,70,255,.4);}
+@keyframes cpop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.cel-title{font-size:clamp(1.8rem,8vw,2.8rem);font-weight:900;
+  background:linear-gradient(90deg,#ff88ff,#88ffff,#ffff88);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:8px;letter-spacing:2px;}
+.cel-sub{color:#aaaadd;font-size:.95rem;margin-bottom:20px;}
+.cel-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.btn-again{background:linear-gradient(135deg,#7070ff,#ff70ff);color:#fff;
+  padding:10px 26px;border-radius:30px;font-size:.9rem;font-weight:700;
+  border:none;cursor:pointer;transition:transform .1s,box-shadow .15s;}
+.btn-again:hover{box-shadow:0 0 20px rgba(180,110,255,.6);}
+.btn-again:active{transform:scale(.94);}
+.btn-chome{background:#1c1c50;border:1px solid #4444aa;color:#aaaaee;
+  padding:10px 22px;border-radius:30px;font-size:.9rem;font-weight:700;
+  cursor:pointer;transition:background .15s,color .15s;}
+.btn-chome:hover{background:#2a2a6a;color:#fff;}
+#conf{position:fixed;inset:0;pointer-events:none;z-index:299;}
+
+@media(max-width:580px){
+  .main{padding:7px;gap:8px;}
+  .clue-panel{max-height:250px;min-width:0;width:100%;max-width:100%;}
+  .btn{padding:8px 13px;font-size:.76rem;}
+  .grade-grid{gap:9px;}
+  .pack-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:360px){
+  .cell{width:27px;height:27px;font-size:.6rem;}
+  .grade-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HOME ═══════════ -->
+<div id="scr-home" class="screen active">
+  <div class="home-body">
+    <span class="home-icon">🪐</span>
+    <div class="home-title">✦ WORD SEARCH PUZZLE ✦</div>
+    <div class="home-sub">Select your grade to begin</div>
+    <div class="grade-grid">
+      <div class="gc gc3" onclick="showPacks(3)">
+        <div class="gn">3</div><div class="gl">Grade 3</div>
+        <div class="gd" style="color:#55ffaa">Beginner</div>
+        <div class="gs">⭐</div><div class="gdesc">Simple words, fun themes</div>
+      </div>
+      <div class="gc gc4" onclick="showPacks(4)">
+        <div class="gn">4</div><div class="gl">Grade 4</div>
+        <div class="gd" style="color:#55ddff">Easy</div>
+        <div class="gs">⭐⭐</div><div class="gdesc">Expanding vocabulary</div>
+      </div>
+      <div class="gc gc5" onclick="showPacks(5)">
+        <div class="gn">5</div><div class="gl">Grade 5</div>
+        <div class="gd" style="color:#9988ff">Medium</div>
+        <div class="gs">⭐⭐⭐</div><div class="gdesc">Richer, layered words</div>
+      </div>
+      <div class="gc gc6" onclick="showPacks(6)">
+        <div class="gn">6</div><div class="gl">Grade 6</div>
+        <div class="gd" style="color:#cc77ff">Hard</div>
+        <div class="gs">⭐⭐⭐⭐</div><div class="gdesc">Science &amp; abstract ideas</div>
+      </div>
+      <div class="gc gc7" onclick="showPacks(7)">
+        <div class="gn">7</div><div class="gl">Grade 7</div>
+        <div class="gd" style="color:#ffaa44">Expert</div>
+        <div class="gs">⭐⭐⭐⭐⭐</div><div class="gdesc">Advanced concepts</div>
+      </div>
+      <div class="gc gc8" onclick="showPacks(8)">
+        <div class="gn">8</div><div class="gl">Grade 8</div>
+        <div class="gd" style="color:#ff5566">Master</div>
+        <div class="gs">⭐⭐⭐⭐⭐⭐</div><div class="gdesc">Sophisticated &amp; nuanced</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PACK SELECT ═══════════ -->
+<div id="scr-packs" class="screen">
+  <div style="display:flex;flex-direction:column;align-items:center;padding:24px 16px 36px;
+    background:radial-gradient(ellipse at 50% 20%,#0e0e38 0%,#070714 65%);min-height:100vh;">
+    <div class="nav-hdr">
+      <button class="btn-nav" onclick="showScreen('home')">◀ Grades</button>
+      <div class="nav-title" id="pack-grade-title">Grade 3</div>
+    </div>
+    <div class="pack-label" id="pack-sub-label">Choose Your Pack</div>
+    <div class="pack-grid" id="pack-grid"></div>
+  </div>
+</div>
+
+<!-- ═══════════ GAME ═══════════ -->
+<div id="scr-game" class="screen">
+  <div class="ghdr">
+    <button class="btn-home" onclick="showScreen('home')">◀ Home</button>
+    <div class="gtitle">✦ WORD SEARCH ✦</div>
+    <div class="gbadge" id="gbadge">G3 • Space</div>
+  </div>
+  <div class="stats-bar">
+    <div class="stat">⏱ <b id="st">0:00</b></div>
+    <div class="stat">⭐ Score <b id="ss">0</b></div>
+    <div class="stat">📝 Found <b id="sf">0</b>&thinsp;/&thinsp;<b id="stot">6</b></div>
+  </div>
+  <div class="main">
+    <div class="grid-area">
+      <div id="grid"></div>
+      <div class="controls">
+        <div class="btn-row">
+          <button class="btn btn-hint" onclick="useHint()">💡 Hint</button>
+          <button class="btn btn-undo" onclick="undo()">↩ Undo</button>
+        </div>
+        <div class="hint-cost" id="hint-cost">Hint: -10 pts (1st) · -20 pts (2nd) · -50 pts (3rd)</div>
+      </div>
+    </div>
+    <div class="clue-panel">
+      <div class="clue-ph" id="clue-ph">🌌 CLUES</div>
+      <div id="clues"></div>
+    </div>
+  </div>
+</div>
+
+<canvas id="conf"></canvas>
+<div id="cel">
+  <div class="cel-box">
+    <div class="cel-title">🎉 Pack Complete!</div>
+    <div class="cel-sub" id="cels"></div>
+    <div class="cel-btns">
+      <button class="btn-again" onclick="newGame()">🔄 Play Again</button>
+      <button class="btn-chome" onclick="showScreen('packs')">📦 More Packs</button>
+      <button class="btn-chome" onclick="showScreen('home')">🏠 Grades</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+//  AUDIO
+// ════════════════════════════════════════
+let _ac=null;
+const ac=()=>_ac||(_ac=new(window.AudioContext||window.webkitAudioContext)());
+function tone(hz,type,dur,vol=0.1,dt=0){
+  try{const ctx=ac(),o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);o.type=type;o.frequency.value=hz;
+    const t=ctx.currentTime+dt;
+    g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(1e-4,t+dur);
+    o.start(t);o.stop(t+dur+.02);}catch(_){}
+}
+const SFX={
+  tap: ()=>tone(500,'sine',.07,.09),
+  drag:()=>tone(580,'sine',.04,.05),
+  ok:  ()=>{tone(523,'sine',.18,.14);tone(659,'sine',.18,.14,.1);tone(784,'sine',.22,.14,.2);},
+  bad: ()=>{tone(160,'sawtooth',.14,.12);tone(120,'sawtooth',.16,.12,.12);},
+  hint:()=>{tone(880,'sine',.1,.12);tone(1100,'sine',.1,.12,.13);},
+  win: ()=>[523,659,784,1047,1319].forEach((f,i)=>tone(f,'sine',.35,.13,i*.15)),
+};
+
+// ════════════════════════════════════════
+//  PACK METADATA  (8 packs)
+// ════════════════════════════════════════
+const PACKS_META=[
+  {id:'space',    name:'Space',      icon:'🚀', clr:'#4488ff', desc:'Stars, planets & cosmos'},
+  {id:'science',  name:'Science',    icon:'🔬', clr:'#22ddee', desc:'How the world works'},
+  {id:'nature',   name:'Nature',     icon:'🌿', clr:'#44bb66', desc:"Earth's natural world"},
+  {id:'emotions', name:'Emotions',   icon:'💭', clr:'#ffaa33', desc:'Feelings & inner states'},
+  {id:'traits',   name:'Traits',     icon:'🌟', clr:'#cc44ff', desc:'Character qualities'},
+  {id:'roots',    name:'Word Roots', icon:'🔤', clr:'#ff7744', desc:'Greek & Latin origins'},
+  {id:'synonyms', name:'Synonyms',   icon:'🔄', clr:'#ffdd22', desc:'Words that mean the same'},
+  {id:'antonyms', name:'Antonyms',   icon:'⚡', clr:'#ff4466', desc:'Words with opposite meanings'},
+];
+
+// ════════════════════════════════════════
+//  WORD DATA  (6 per pack × 8 packs × 6 grades = 288 unique words)
+// ════════════════════════════════════════
+const GRADES={
+ 3:{label:'Grade 3',
+  space:{icon:'🚀',words:[
+   {w:'SUN',    c:"The giant star at the center of our solar system"},
+   {w:'MOON',   c:"Earth's natural satellite that lights the night sky"},
+   {w:'STAR',   c:"A massive ball of glowing hot gas seen in the night sky"},
+   {w:'MARS',   c:"The red planet, fourth from the Sun"},
+   {w:'COMET',  c:"An icy space body that grows a glowing tail near the Sun"},
+   {w:'ORBIT',  c:"The curved path a planet or moon takes around a larger body"},
+  ]},
+  science:{icon:'🔬',words:[
+   {w:'FOSSIL', c:"The preserved remains or imprint of an ancient living thing found in rock"},
+   {w:'LIQUID', c:"A state of matter that flows freely and takes the shape of its container"},
+   {w:'SHADOW', c:"A dark area formed on a surface when an object blocks a source of light"},
+   {w:'INSECT', c:"A small six-legged animal with three body segments, like a bee or butterfly"},
+   {w:'ENERGY', c:"The ability to do work or make things move; it comes in many forms"},
+   {w:'MATTER', c:"Anything that takes up space and has mass; everything around us is made of it"},
+  ]},
+  nature:{icon:'🌿',words:[
+   {w:'LEAF',   c:"A flat green part of a plant that captures sunlight to make food"},
+   {w:'RAIN',   c:"Water droplets that fall from clouds to the ground"},
+   {w:'SOIL',   c:"The top layer of earth in which plants grow"},
+   {w:'SEED',   c:"A tiny capsule from which a new plant can grow"},
+   {w:'POND',   c:"A small, still body of fresh water"},
+   {w:'VINE',   c:"A climbing plant with long, flexible stems"},
+  ]},
+  emotions:{icon:'💭',words:[
+   {w:'GLAD',   c:"Feeling happy and pleased about something"},
+   {w:'HOPE',   c:"A feeling that something good will happen"},
+   {w:'FEAR',   c:"An uneasy feeling caused by something dangerous or scary"},
+   {w:'ANGRY',  c:"Having a strong feeling of displeasure or annoyance"},
+   {w:'PROUD',  c:"Feeling pleased about something you or someone else did well"},
+   {w:'UPSET',  c:"Feeling unhappy, worried, or disappointed"},
+  ]},
+  traits:{icon:'🌟',words:[
+   {w:'BRAVE',  c:"Willing to face danger or difficulty without showing fear"},
+   {w:'SMART',  c:"Quick to learn and understand things; intelligent"},
+   {w:'FUNNY',  c:"Making people laugh; having a playful sense of humor"},
+   {w:'LOYAL',  c:"Giving firm and constant support to someone you care about"},
+   {w:'QUIET',  c:"Tending to be calm and not loud or very talkative"},
+   {w:'SILLY',  c:"Playfully lighthearted in a way that isn't very serious"},
+  ]},
+  roots:{icon:'🔤',words:[
+   {w:'UNHAPPY', c:"Prefix UN- means 'not'. Add it to HAPPY → What word means not feeling happy?",root:true},
+   {w:'REPLAY',  c:"Prefix RE- means 'again'. Add it to PLAY → What word means to play something again?",root:true},
+   {w:'HELPFUL', c:"Suffix -FUL means 'full of'. Add it to HELP → What word means full of help?",root:true},
+   {w:'SLOWLY',  c:"Suffix -LY means 'in a manner'. Add it to SLOW → What word means moving in a slow manner?",root:true},
+   {w:'PREVIEW', c:"Prefix PRE- means 'before'. Add it to VIEW → What word means to view something before it is released?",root:true},
+   {w:'DISLIKE', c:"Prefix DIS- means 'not/opposite'. Add it to LIKE → What word means to not like something?",root:true},
+  ]},
+  synonyms:{icon:'🔄',words:[
+   {w:'MERRY',  c:"Find a word meaning the same as HAPPY — full of joy and cheerful delight",syn:true},
+   {w:'LARGE',  c:"Find a word meaning the same as BIG — of great size, greater than average",syn:true},
+   {w:'SWIFT',  c:"Find a word meaning the same as FAST — moving with great speed and quickness",syn:true},
+   {w:'GLOOMY', c:"Find a word meaning the same as SAD — dark and filled with low spirits",syn:true},
+   {w:'TIDY',   c:"Find a word meaning the same as NEAT — arranged in an orderly and clean way",syn:true},
+   {w:'DAMP',   c:"Find a word meaning the same as WET — slightly moist; not completely dry",syn:true},
+  ]},
+  antonyms:{icon:'⚡',words:[
+   {w:'NIGHT',  c:"The opposite of DAY — the dark period between sunset and the next sunrise",ant:true},
+   {w:'SOFT',   c:"The opposite of HARD — yielding easily to touch; gentle and easy to press",ant:true},
+   {w:'NOISY',  c:"The opposite of QUIET — producing a lot of loud or disruptive sounds",ant:true},
+   {w:'CLEAN',  c:"The opposite of DIRTY — free from stains, dust, or any unwanted mess",ant:true},
+   {w:'EMPTY',  c:"The opposite of FULL — containing nothing at all; with no contents inside",ant:true},
+   {w:'ROUGH',  c:"The opposite of SMOOTH — having an uneven, bumpy, or coarse surface texture",ant:true},
+  ]},
+ },
+ 4:{label:'Grade 4',
+  space:{icon:'🚀',words:[
+   {w:'VENUS',  c:"The hottest planet, second from the Sun, covered in thick clouds"},
+   {w:'PLUTO',  c:"A dwarf planet at the far outer edge of our solar system"},
+   {w:'PROBE',  c:"A robotic spacecraft sent to explore distant parts of space"},
+   {w:'CRATER', c:"A bowl-shaped pit formed by an asteroid impact on a surface"},
+   {w:'METEOR', c:"A space rock that burns up as a bright streak in our atmosphere"},
+   {w:'ROCKET', c:"A vehicle that uses powerful thrust to travel into outer space"},
+  ]},
+  science:{icon:'🔬',words:[
+   {w:'CIRCUIT', c:"A complete path through which electric current can flow from a source and back"},
+   {w:'MAGNET',  c:"An object that produces an invisible force attracting iron and some other metals"},
+   {w:'REFLECT', c:"To bounce back light, sound, or heat off a surface without absorbing it"},
+   {w:'CURRENT', c:"The flow of electric charge through a wire or conductor, measured in amperes"},
+   {w:'STATIC',  c:"Electric charge that builds up on a surface and does not flow, causing sparks"},
+   {w:'CHARGE',  c:"A property of matter that causes it to experience a force near other charged objects"},
+  ]},
+  nature:{icon:'🌿',words:[
+   {w:'CLOUD',  c:"A visible mass of tiny water droplets floating in the atmosphere"},
+   {w:'FROST',  c:"A thin layer of ice crystals that forms on surfaces in freezing cold"},
+   {w:'MARSH',  c:"A low, wet area of land flooded with water, home to many birds"},
+   {w:'BLOOM',  c:"The flower of a plant; or the act of producing flowers in spring"},
+   {w:'STORM',  c:"A violent weather event with strong wind, heavy rain, or snow"},
+   {w:'GROVE',  c:"A small cluster of trees growing close together"},
+  ]},
+  emotions:{icon:'💭',words:[
+   {w:'TENSE',  c:"Feeling nervous and unable to relax; mentally stretched"},
+   {w:'EAGER',  c:"Very enthusiastic and excited about doing something"},
+   {w:'SORRY',  c:"Feeling regret or sadness about something that happened"},
+   {w:'SHAME',  c:"A painful feeling that you have done something wrong or embarrassing"},
+   {w:'CHEER',  c:"A feeling of happiness and optimism; wanting to lift someone's mood"},
+   {w:'GRIEF',  c:"Deep sadness felt when losing someone or something important"},
+  ]},
+  traits:{icon:'🌟',words:[
+   {w:'CLEVER', c:"Quick to understand and learn; showing practical intelligence"},
+   {w:'POLITE', c:"Having good manners and being respectful toward others"},
+   {w:'GENTLE', c:"Having a mild, kind manner; not rough or harsh"},
+   {w:'HONEST', c:"Telling the truth and not deceiving others"},
+   {w:'WORTHY', c:"Having value or good qualities that deserve respect or admiration"},
+   {w:'HUMBLE', c:"Not proud or arrogant; having a modest opinion of oneself"},
+  ]},
+  roots:{icon:'🔤',words:[
+   {w:'BICYCLE', c:"BI- (Latin: two) + CYCLE (wheel) → What word names a two-wheeled riding vehicle?",root:true},
+   {w:'TRIPOD',  c:"TRI- (Greek: three) + POD (foot) → What word names a three-legged support stand?",root:true},
+   {w:'EXPORT',  c:"EX- (Latin: out of) + PORT (carry) → What word means to carry goods out of a country?",root:true},
+   {w:'AUDIO',   c:"Latin AUDIRE (to hear) → What word relates to sound that can be heard or recorded?",root:true},
+   {w:'VISION',  c:"Latin VIDERE (to see) → What word means the ability to see, or a mental picture?",root:true},
+   {w:'PREDICT', c:"PRE- (before) + Latin DICT (say/speak) → What word means to say what will happen before it occurs?",root:true},
+  ]},
+  synonyms:{icon:'🔄',words:[
+   {w:'CHILLY',  c:"Find a word meaning the same as COLD — uncomfortably cool; makes you want a jacket",syn:true},
+   {w:'BRIGHT',  c:"Find a word meaning the same as SMART — quick to learn and understand new ideas",syn:true},
+   {w:'SPRINT',  c:"Find a word meaning the same as DASH — to run as fast as possible over a short distance",syn:true},
+   {w:'SLEEPY',  c:"Find a word meaning the same as TIRED — feeling drowsy and ready to fall asleep",syn:true},
+   {w:'NARROW',  c:"Find a word meaning the same as THIN — having little width; not wide at all",syn:true},
+   {w:'FILTHY',  c:"Find a word meaning the same as DIRTY — covered in grime, mud, or disgusting mess",syn:true},
+  ]},
+  antonyms:{icon:'⚡',words:[
+   {w:'AWAKE',  c:"The opposite of ASLEEP — fully conscious, alert, and no longer sleeping",ant:true},
+   {w:'STRONG', c:"The opposite of WEAK — having great physical power or a determined inner force",ant:true},
+   {w:'EXPAND', c:"The opposite of SHRINK — to grow larger, wider, or to increase in size",ant:true},
+   {w:'SCARCE', c:"The opposite of PLENTIFUL — in very short supply and difficult to find",ant:true},
+   {w:'VACANT', c:"The opposite of OCCUPIED — empty, unused, and containing no one",ant:true},
+   {w:'FANCY',  c:"The opposite of PLAIN — highly decorated, elaborate, or ornate in design",ant:true},
+  ]},
+ },
+ 5:{label:'Grade 5',
+  space:{icon:'🚀',words:[
+   {w:'NEBULA',   c:"A giant cloud of gas and dust in space where new stars form"},
+   {w:'AURORA',   c:"Colorful curtains of light near the poles caused by solar particles"},
+   {w:'QUASAR',   c:"An extremely bright and distant active galactic nucleus"},
+   {w:'ECLIPSE',  c:"When one celestial body moves into the shadow cast by another"},
+   {w:'GRAVITY',  c:"The invisible force that pulls objects with mass toward each other"},
+   {w:'ZENITH',   c:"The point in the sky directly above an observer's head"},
+  ]},
+  science:{icon:'🔬',words:[
+   {w:'MIXTURE',  c:"Two or more substances combined together but not chemically joined"},
+   {w:'SOLUTION', c:"A mixture where one substance is evenly dissolved in another, like salt in water"},
+   {w:'DENSITY',  c:"How much mass is packed into a given volume; heavy for its size means high density"},
+   {w:'ORGANISM', c:"Any living thing — plant, animal, fungus, or microbe — that carries out life processes"},
+   {w:'HABITAT',  c:"The natural environment where a specific plant or animal lives and finds what it needs"},
+   {w:'MINERAL',  c:"A naturally occurring solid with a specific crystal structure and chemical composition"},
+  ]},
+  nature:{icon:'🌿',words:[
+   {w:'CANOPY',  c:"The uppermost layer of a forest, formed by the tops of tall trees"},
+   {w:'TUNDRA',  c:"A vast, flat, treeless Arctic region with permanently frozen ground"},
+   {w:'GLACIER', c:"A large, slow-moving mass of ice formed from compacted snow over centuries"},
+   {w:'DELTA',   c:"A low, flat landform where a river fans out before reaching the sea"},
+   {w:'GEYSER',  c:"A hot spring that periodically shoots columns of water and steam into the air"},
+   {w:'POLLEN',  c:"Fine powder from flowers carried by wind or insects for plant reproduction"},
+  ]},
+  emotions:{icon:'💭',words:[
+   {w:'ELATED',  c:"Feeling extremely happy and excited, almost as if you could float away"},
+   {w:'SERENE',  c:"Calm, peaceful, and free from stress or anxiety"},
+   {w:'GRUMPY',  c:"Easily annoyed and in a persistent bad mood, often complaining"},
+   {w:'REGRET',  c:"A feeling of sadness or disappointment about something you did or didn't do"},
+   {w:'AMAZED',  c:"Filled with great surprise and wonder at something unexpected"},
+   {w:'UNEASY',  c:"Feeling slightly anxious or uncomfortable about a situation"},
+  ]},
+  traits:{icon:'🌟',words:[
+   {w:'CUNNING', c:"Achieving goals in clever, resourceful, and sometimes crafty ways"},
+   {w:'PATIENT', c:"Able to wait calmly without becoming frustrated or upset"},
+   {w:'SINCERE', c:"Genuinely meaning what you say; honest and free from pretense"},
+   {w:'MODEST',  c:"Not boasting about abilities; having a humble view of oneself"},
+   {w:'GIFTED',  c:"Having a natural talent or exceptional ability in a particular area"},
+   {w:'TENDER',  c:"Showing gentleness and warmth toward others; emotionally soft"},
+  ]},
+  roots:{icon:'🔤',words:[
+   {w:'BIOLOGY',  c:"Greek BIO (life) + LOGY (study of) → What word means the scientific study of living things?",root:true},
+   {w:'GEOLOGY',  c:"Greek GEO (earth) + LOGY (study of) → What word means the study of Earth's rocks and history?",root:true},
+   {w:'THERMAL',  c:"Greek THERME (heat) → What adjective describes something relating to heat or temperature?",root:true},
+   {w:'AQUATIC',  c:"Latin AQUA (water) → What adjective describes living things found in or relating to water?",root:true},
+   {w:'PORTABLE', c:"Latin PORTARE (to carry) + -ABLE → What word describes something easy enough to carry around?",root:true},
+   {w:'TRANSFER', c:"Latin TRANS (across) + FERRE (to carry) → What word means to move something from one place to another?",root:true},
+  ]},
+  synonyms:{icon:'🔄',words:[
+   {w:'ANCIENT', c:"Find a word meaning the same as OLD — having existed since very long ago in history",syn:true},
+   {w:'WEARY',   c:"Find a word meaning the same as TIRED — drained of energy after long effort or work",syn:true},
+   {w:'RADIANT', c:"Find a word meaning the same as BRIGHT — sending out a warm and glowing light",syn:true},
+   {w:'FRIGID',  c:"Find a word meaning the same as FREEZING — intensely cold, well below comfortable temperatures",syn:true},
+   {w:'HASTEN',  c:"Find a word meaning the same as HURRY — to move or act more quickly with urgency",syn:true},
+   {w:'SOLEMN',  c:"Find a word meaning the same as SERIOUS — grave and dignified; not playful or light",syn:true},
+  ]},
+  antonyms:{icon:'⚡',words:[
+   {w:'TIMID',    c:"The opposite of BOLD — lacking confidence; easily frightened and hesitant to act",ant:true},
+   {w:'PLENTY',   c:"The opposite of SCARCITY — a large, more-than-sufficient amount of something",ant:true},
+   {w:'RESTLESS', c:"The opposite of CALM — unable to stay still; fidgety and constantly unsettled",ant:true},
+   {w:'SHALLOW',  c:"The opposite of DEEP — not going far below the surface; of little depth",ant:true},
+   {w:'BARREN',   c:"The opposite of FERTILE — unable to support plant growth; empty and unproductive",ant:true},
+   {w:'SHRIVEL',  c:"The opposite of EXPAND — to dry up and contract, becoming smaller and wrinkled",ant:true},
+  ]},
+ },
+ 6:{label:'Grade 6',
+  space:{icon:'🚀',words:[
+   {w:'ASTEROID', c:"A rocky body smaller than a planet, orbiting the Sun in our solar system"},
+   {w:'SPECTRUM', c:"The full range of colors revealed when white light passes through a prism"},
+   {w:'MOMENTUM', c:"The quantity of motion of an object: its mass multiplied by its velocity"},
+   {w:'VELOCITY', c:"The speed of an object moving in a specific direction; a vector quantity"},
+   {w:'HYDROGEN', c:"The lightest and most abundant element in the universe, making up most of the Sun"},
+   {w:'UNIVERSE', c:"All of space, time, matter, and energy — everything that exists"},
+  ]},
+  science:{icon:'🔬',words:[
+   {w:'PHOTON',   c:"A tiny packet of light energy that travels at the fastest speed possible in the universe"},
+   {w:'NUCLEUS',  c:"The dense, positively charged center of an atom, containing protons and neutrons"},
+   {w:'NEUTRON',  c:"A subatomic particle found in the atomic nucleus with no electric charge"},
+   {w:'PROTON',   c:"A positively charged subatomic particle found inside the nucleus of every atom"},
+   {w:'FRICTION', c:"The force that resists the sliding or rolling of one surface against another"},
+   {w:'MOLECULE', c:"The smallest unit of a substance, made of two or more atoms held together by chemical bonds"},
+  ]},
+  nature:{icon:'🌿',words:[
+   {w:'BEDROCK',  c:"The solid, unbroken rock layer found beneath loose soil and sediment"},
+   {w:'AQUIFER',  c:"An underground layer of permeable rock or sediment that stores groundwater"},
+   {w:'EROSION',  c:"The gradual wearing away of rock or soil by wind, water, ice, or gravity"},
+   {w:'PLATEAU',  c:"A high, flat area of land that rises sharply above the surrounding terrain"},
+   {w:'ESTUARY',  c:"A coastal area where a river meets the ocean and fresh water mixes with salt water"},
+   {w:'CREVICE',  c:"A narrow crack or opening in a rock face or cliff"},
+  ]},
+  emotions:{icon:'💭',words:[
+   {w:'ANXIOUS',  c:"Feeling worried and nervous about something uncertain or potentially harmful"},
+   {w:'CONTENT',  c:"Feeling satisfied and at peace with your current circumstances"},
+   {w:'DESPAIR',  c:"A complete loss of hope; the belief that nothing will ever improve"},
+   {w:'FURIOUS',  c:"Extremely angry; experiencing uncontrolled, intense rage"},
+   {w:'LONGING',  c:"A deep, persistent wish or desire for something out of reach"},
+   {w:'APATHY',   c:"A complete lack of interest, enthusiasm, or concern about the world around you"},
+  ]},
+  traits:{icon:'🌟',words:[
+   {w:'DILIGENT', c:"Showing careful, persistent effort and hard work in all tasks"},
+   {w:'ARROGANT', c:"Having an exaggerated and offensive sense of one's own importance"},
+   {w:'STUBBORN', c:"Refusing to change your mind or course of action despite good reasons to"},
+   {w:'FLEXIBLE', c:"Willing and able to change or adapt to new conditions"},
+   {w:'VIGILANT', c:"Keeping careful and constant watch for possible danger or difficulty"},
+   {w:'GRACIOUS', c:"Courteous, kind, and pleasant in manner, especially toward others"},
+  ]},
+  roots:{icon:'🔤',words:[
+   {w:'MONARCHY',  c:"Greek MONO (one/alone) + ARCHE (rule) → What word names a system governed by a single ruler?",root:true},
+   {w:'BIOSPHERE', c:"Greek BIO (life) + SPHAIRA (globe) → What word names the zone of Earth where all life exists?",root:true},
+   {w:'AUDITORY',  c:"Latin AUDIRE (to hear) + -ORY → What word describes something relating to the sense of hearing?",root:true},
+   {w:'SYMPATHY',  c:"Greek SYM (together) + PATHOS (feeling) → What word means understanding another person's feelings?",root:true},
+   {w:'INTERRUPT', c:"Latin INTER (between) + RUMPERE (to break) → What word means to break into the middle of something?",root:true},
+   {w:'INSCRIBE',  c:"Latin IN (into) + SCRIBERE (to write) → What word means to carefully write or carve words onto a surface?",root:true},
+  ]},
+  synonyms:{icon:'🔄',words:[
+   {w:'TRANQUIL', c:"Find a word meaning the same as CALM — free from disturbance; peaceful and still",syn:true},
+   {w:'CURIOUS',  c:"Find a word meaning the same as INQUISITIVE — eager to learn, discover, and explore",syn:true},
+   {w:'SOMBER',   c:"Find a word meaning the same as GLOOMY — dark and dull; conveying sadness or seriousness",syn:true},
+   {w:'GIGANTIC', c:"Find a word meaning the same as ENORMOUS — extraordinarily large in size or scale",syn:true},
+   {w:'PERISH',   c:"Find a word meaning the same as DIE — to come to an end; to cease to live or exist",syn:true},
+   {w:'VALIANT',  c:"Find a word meaning the same as BRAVE — showing great personal courage in the face of danger",syn:true},
+  ]},
+  antonyms:{icon:'⚡',words:[
+   {w:'RIGID',    c:"The opposite of FLEXIBLE — completely stiff and unable to bend or adapt to change",ant:true},
+   {w:'ABUNDANT', c:"The opposite of SCARCE — present in very large quantities; more than enough",ant:true},
+   {w:'OBSCURE',  c:"The opposite of FAMOUS — not widely known; unclear or hidden from view",ant:true},
+   {w:'VOLATILE', c:"The opposite of STABLE — likely to change suddenly and unpredictably",ant:true},
+   {w:'CONCEAL',  c:"The opposite of REVEAL — to hide something so it cannot be seen or found",ant:true},
+   {w:'PASSIVE',  c:"The opposite of ACTIVE — accepting events without resistance; not taking action",ant:true},
+  ]},
+ },
+ 7:{label:'Grade 7',
+  space:{icon:'🚀',words:[
+   {w:'EXOPLANET', c:"A planet that orbits a star outside our own solar system"},
+   {w:'CORONA',    c:"The outermost layer of the Sun's atmosphere, visible as a glowing halo during a solar eclipse"},
+   {w:'CELESTIAL', c:"Relating to the sky, the heavens, or objects found in outer space"},
+   {w:'RADIATION', c:"Energy transmitted as electromagnetic waves or fast-moving particles through space"},
+   {w:'WORMHOLE',  c:"A theoretical tunnel through spacetime connecting two distant points in the universe"},
+   {w:'PARALLAX',  c:"The apparent shift in an object's position when viewed from two different vantage points"},
+  ]},
+  science:{icon:'🔬',words:[
+   {w:'GENETICS',  c:"The branch of biology that studies how traits and characteristics are inherited"},
+   {w:'HEREDITY',  c:"The biological process by which traits are passed from parents to their offspring"},
+   {w:'OSMOSIS',   c:"The diffusion of water through a semi-permeable membrane to balance concentrations"},
+   {w:'CATALYST',  c:"A substance that speeds up a chemical reaction without being consumed in the process"},
+   {w:'DIFFUSION', c:"The movement of particles from an area of higher concentration to lower concentration"},
+   {w:'REACTION',  c:"A chemical process in which substances transform into new substances with different properties"},
+  ]},
+  nature:{icon:'🌿',words:[
+   {w:'SEDIMENT',  c:"Particles of sand, silt, and organic matter deposited by water, wind, or ice"},
+   {w:'VOLCANIC',  c:"Relating to or produced by a volcano; formed from erupted magma"},
+   {w:'DORMANT',   c:"Temporarily inactive, like a volcano that has not erupted in a long time"},
+   {w:'TEMPERATE', c:"Having a mild climate with moderate temperatures, not extreme hot or cold"},
+   {w:'ALLUVIUM',  c:"Sand, silt, and clay deposited by flowing water across a floodplain"},
+   {w:'TECTONIC',  c:"Relating to the large, slow-moving plates that make up Earth's outer crust"},
+  ]},
+  emotions:{icon:'💭',words:[
+   {w:'EUPHORIA',  c:"An intense, almost overwhelming feeling of happiness and well-being"},
+   {w:'JEALOUSY',  c:"Feeling envious of what others have, or fearful of losing something you value"},
+   {w:'EMPATHY',   c:"The ability to understand and genuinely share the feelings of another person"},
+   {w:'CONTEMPT',  c:"A strong feeling that someone or something is worthless or beneath consideration"},
+   {w:'SOLITUDE',  c:"The peaceful state of being alone, chosen and enjoyed rather than forced"},
+   {w:'REMORSE',   c:"Deep regret and guilt over a wrong you have done to another person"},
+  ]},
+  traits:{icon:'🌟',words:[
+   {w:'RESILIENT', c:"Able to recover quickly from setbacks, hardships, or difficult experiences"},
+   {w:'AMBITIOUS', c:"Having a strong, driving desire to succeed and achieve great goals"},
+   {w:'IMPULSIVE', c:"Acting suddenly on feelings without thinking carefully about consequences"},
+   {w:'CYNICAL',   c:"Distrustful of people's motives; believing everyone acts out of selfishness"},
+   {w:'TACTFUL',   c:"Saying and doing things skillfully to avoid causing offense or hurt"},
+   {w:'COMPOSED',  c:"Calm and in control of your emotions, especially in a stressful situation"},
+  ]},
+  roots:{icon:'🔤',words:[
+   {w:'DEMOCRACY', c:"Greek DEMOS (people) + KRATOS (power) → What word names a system of government by the people?",root:true},
+   {w:'PATERNAL',  c:"Latin PATER (father) + suffix -AL → What adjective describes something relating to a father or showing fatherly care?",root:true},
+   {w:'CARNIVORE', c:"Latin CARNIS (flesh) + VORARE (to eat) → What word names a creature that eats only meat?",root:true},
+   {w:'HERBAL',    c:"Latin HERBA (plant/herb) → What adjective describes remedies, teas, or medicines made from plants?",root:true},
+   {w:'BINOCULAR', c:"Latin BI (two) + OCULUS (eye) → What word names the two-eyepiece instrument for viewing distant objects?",root:true},
+   {w:'MAGNIFY',   c:"Latin MAGNUS (great/large) + FICARE (to make) → What word means to make something appear much larger than it really is?",root:true},
+  ]},
+  synonyms:{icon:'🔄',words:[
+   {w:'LAMENT',    c:"Find a word meaning the same as MOURN — to express deep sorrow and grief over a loss",syn:true},
+   {w:'CANDID',    c:"Find a word meaning the same as HONEST — frank and straightforward; holding nothing back",syn:true},
+   {w:'ARDUOUS',   c:"Find a word meaning the same as DIFFICULT — requiring great effort and endurance to complete",syn:true},
+   {w:'FLOURISH',  c:"Find a word meaning the same as THRIVE — to grow strongly and be very successful",syn:true},
+   {w:'PRECISE',   c:"Find a word meaning the same as EXACT — clearly and accurately expressed, leaving no doubt",syn:true},
+   {w:'PERPLEXED', c:"Find a word meaning the same as CONFUSED — completely puzzled and unable to understand",syn:true},
+  ]},
+  antonyms:{icon:'⚡',words:[
+   {w:'ZEAL',     c:"The opposite of APATHY — great energy and enthusiasm devoted to a purpose or cause",ant:true},
+   {w:'RECKLESS', c:"The opposite of CAUTIOUS — acting without thought for danger or consequences",ant:true},
+   {w:'VERBOSE',  c:"The opposite of CONCISE — using far more words than necessary; overly long-winded",ant:true},
+   {w:'TRIVIAL',  c:"The opposite of SIGNIFICANT — of little importance or value; not worth attention",ant:true},
+   {w:'HOSTILE',  c:"The opposite of FRIENDLY — showing strong aggression and ill will toward others",ant:true},
+   {w:'LENIENT',  c:"The opposite of STRICT — not harsh in discipline; tolerant and allowing more freedom",ant:true},
+  ]},
+ },
+ 8:{label:'Grade 8',
+  space:{icon:'🚀',words:[
+   {w:'SUPERNOVA',  c:"A catastrophic stellar explosion that briefly outshines an entire galaxy"},
+   {w:'MAGNETISM',  c:"A physical force created by moving electric charges, forming invisible fields of attraction"},
+   {w:'COSMOLOGY',  c:"The scientific study of the origin, large-scale structure, and ultimate fate of the universe"},
+   {w:'NEUTRINO',  c:"A near-massless subatomic particle with no charge that passes through matter almost undetected"},
+   {w:'REDSHIFT',  c:"The lengthening of light waves observed when a source is moving away from the observer"},
+   {w:'SPACETIME', c:"Einstein's concept of the unified four-dimensional fabric in which three dimensions of space and one of time are merged"},
+  ]},
+  science:{icon:'🔬',words:[
+   {w:'INERTIA',   c:"The tendency of an object to resist changes in its state of motion or rest"},
+   {w:'ENTROPY',   c:"A measure of disorder in a system; a natural tendency toward increasing randomness"},
+   {w:'ISOTOPE',   c:"A form of an element with the same number of protons but a different number of neutrons"},
+   {w:'COMPOUND',  c:"A substance made of two or more different elements chemically bonded in fixed ratios"},
+   {w:'ELECTRON',  c:"A negatively charged subatomic particle that moves around the nucleus of an atom"},
+   {w:'OXIDATION', c:"A chemical process in which a substance loses electrons or gains oxygen; causes rust"},
+  ]},
+  nature:{icon:'🌿',words:[
+   {w:'BIOMASS',   c:"The total mass of all living organisms in a given area or ecosystem"},
+   {w:'NITROGEN',  c:"A colorless, odorless gas making up about 78% of Earth's atmosphere"},
+   {w:'PERMEABLE', c:"Allowing liquid or gas to pass through its pores or small spaces"},
+   {w:'DECIDUOUS', c:"Describes trees or plants that shed all their leaves at the end of each growing season"},
+   {w:'SYMBIOSIS', c:"A close, long-term interaction between two different species that benefits at least one of them"},
+   {w:'LEACHING',  c:"The process by which water dissolves and carries away minerals or nutrients from soil or rock"},
+  ]},
+  emotions:{icon:'💭',words:[
+   {w:'NOSTALGIA', c:"A bittersweet longing for the happiness or simplicity of a past time or place"},
+   {w:'ALIENATED', c:"Feeling isolated, cut off, and no longer belonging to a group or society"},
+   {w:'FORLORN',   c:"Appearing or feeling pitifully sad, lonely, and without hope"},
+   {w:'PENSIVE',   c:"Engaged in deep, serious thought, often with a touch of sadness or worry"},
+   {w:'CATHARSIS', c:"The emotional release and sense of relief that comes from expressing deeply held feelings"},
+   {w:'RESIGNED',  c:"Calmly accepting something unpleasant, feeling powerless to change it"},
+  ]},
+  traits:{icon:'🌟',words:[
+   {w:'TENACIOUS', c:"Holding firmly to a purpose or belief, refusing to give up despite obstacles"},
+   {w:'PRAGMATIC', c:"Dealing with problems in a practical, sensible way rather than following ideals"},
+   {w:'EQUITABLE', c:"Treating all people fairly and justly, giving everyone an equal and appropriate share"},
+   {w:'DOGMATIC',  c:"Insisting one's own beliefs are absolute truth and refusing to consider other views"},
+   {w:'VIRTUOUS',  c:"Having and demonstrating high moral standards and ethical behavior"},
+   {w:'INTREPID',  c:"Fearless and adventurous; undaunted by danger or hardship"},
+  ]},
+  roots:{icon:'🔤',words:[
+   {w:'ANTIPATHY', c:"Greek ANTI (against) + PATHOS (feeling) → What word means a strong instinctive dislike?",root:true},
+   {w:'ALTRUISM',  c:"Latin ALTER (other) → What word describes selfless concern for the well-being of other people?",root:true},
+   {w:'AMBIGUOUS', c:"Latin AMBI (both ways) + AGERE (to drive) → What word means open to more than one interpretation?",root:true},
+   {w:'EUPHEMISM', c:"Greek EU (good) + PHEME (speech) → What word names a mild expression used in place of a harsh one?",root:true},
+   {w:'LEXICON',   c:"Greek LEXIKON (of words) + LEXIS (speech) → What word names the complete vocabulary of a language or subject?",root:true},
+   {w:'ANALOGY',   c:"Greek ANA (according to) + LOGOS (reason) → What word names a comparison used to explain or clarify ideas?",root:true},
+  ]},
+  synonyms:{icon:'🔄',words:[
+   {w:'PROFOUND',   c:"Find a word meaning the same as DEEP — showing great insight, wisdom, or intensity",syn:true},
+   {w:'FUTILE',     c:"Find a word meaning the same as USELESS — producing no result; completely pointless",syn:true},
+   {w:'AUGMENT',    c:"Find a word meaning the same as INCREASE — to make something bigger or greater in extent",syn:true},
+   {w:'PARAMOUNT',  c:"Find a word meaning the same as SUPREME — of the highest importance; above all others",syn:true},
+   {w:'OSTRACIZE',  c:"Find a word meaning the same as EXCLUDE — to deliberately shut someone out of a group",syn:true},
+   {w:'LUCID',      c:"Find a word meaning the same as CLEAR — easily understood; expressed with perfect clarity",syn:true},
+  ]},
+  antonyms:{icon:'⚡',words:[
+   {w:'TRANSIENT', c:"The opposite of PERMANENT — lasting only a brief time before passing away",ant:true},
+   {w:'COHERENT',  c:"The opposite of CONFUSED — logically consistent and clearly expressed",ant:true},
+   {w:'LETHARGIC', c:"The opposite of ENERGETIC — lacking energy or vitality; abnormally drowsy and sluggish",ant:true},
+   {w:'ABSTRACT',  c:"The opposite of CONCRETE — existing only as an idea, without physical form",ant:true},
+   {w:'DISCORD',   c:"The opposite of HARMONY — disagreement and conflict between people or groups",ant:true},
+   {w:'ELOQUENT',  c:"The opposite of INARTICULATE — fluent, expressive, and persuasive in speech",ant:true},
+  ]},
+ },
+};
+
+// ════════════════════════════════════════
+//  CONSTANTS & STATE
+// ════════════════════════════════════════
+const N=10, DIRS=[[0,1],[1,0],[1,1],[1,-1]];
+const HINT_COSTS=[0,10,20,50]; // cost at each hint level
+let G=[],PW=[],sel=[],anchor=null,live=false;
+let score=0,found=0,hist=[];
+let tsec=0,tid=null,gameOn=false;
+let curGrade=3,curPack='space';
+
+// ════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('scr-'+name).classList.add('active');
+  if(name!=='game'){
+    document.getElementById('cel').classList.remove('on');
+    cancelAnimationFrame(craf);
+    clearInterval(tid);
+    gameOn=false;
+  }
+}
+
+function showPacks(grade){
+  curGrade=grade;
+  document.getElementById('pack-grade-title').textContent=GRADES[grade].label;
+  document.getElementById('pack-sub-label').textContent='Choose Your Pack';
+  const container=document.getElementById('pack-grid');
+  container.innerHTML='';
+  PACKS_META.forEach(pm=>{
+    const card=document.createElement('div');
+    card.className='pack-card';
+    card.style.cssText=`border-color:${pm.clr}44;--pclr:${pm.clr};`;
+    card.innerHTML=`<div class="pack-icon">${pm.icon}</div>
+      <div class="pack-name">${pm.name}</div>
+      <div class="pack-desc">${pm.desc}</div>
+      <div class="pack-words">6 words · Grade ${grade}</div>`;
+    card.addEventListener('mouseenter',()=>{
+      card.style.boxShadow=`0 8px 24px ${pm.clr}55`;
+      card.style.borderColor=pm.clr;
+      card.style.transform='translateY(-5px) scale(1.02)';
+    });
+    card.addEventListener('mouseleave',()=>{
+      card.style.boxShadow='';
+      card.style.borderColor=pm.clr+'44';
+      card.style.transform='';
+    });
+    card.onclick=()=>startGame(pm.id);
+    container.appendChild(card);
+  });
+  showScreen('packs');
+}
+
+function startGame(packId){
+  curPack=packId;
+  const pm=PACKS_META.find(p=>p.id===packId);
+  document.getElementById('gbadge').textContent=`G${curGrade} · ${pm.icon}${pm.name}`;
+  document.getElementById('clue-ph').textContent=`${pm.icon} ${pm.name.toUpperCase()} — CLUES`;
+  showScreen('game');
+  newGame();
+}
+
+// ════════════════════════════════════════
+//  GRID GENERATION
+// ════════════════════════════════════════
+function buildGrid(){
+  const allWords=GRADES[curGrade][curPack].words;
+  let gridAttempts=0;
+  // Retry the entire layout until every word fits (or 100 tries exhausted).
+  // Without this, a word that can't be placed is silently skipped, causing the
+  // win condition to trigger prematurely when all *placed* words are found.
+  do{
+    G=Array.from({length:N},()=>Array(N).fill(''));
+    PW=[];
+    const pool=[...allWords].sort(()=>Math.random()-.5);
+    pool.forEach((wd,ci)=>{
+      const word=wd.w;
+      const dirs=[...DIRS].sort(()=>Math.random()-.5);
+      let ok=false;
+      for(let a=0;a<400&&!ok;a++){
+        const[dr,dc]=dirs[a%dirs.length];
+        const r0=Math.floor(Math.random()*N),c0=Math.floor(Math.random()*N);
+        if(fits(word,r0,c0,dr,dc)){
+          PW.push({wd,r0,c0,dr,dc,cells:stamp(word,r0,c0,dr,dc),ci,found:false,hintLevel:0});
+          ok=true;
+        }
+      }
+    });
+    gridAttempts++;
+  }while(PW.length<allWords.length&&gridAttempts<100);
+  const ABC='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++)
+    if(!G[r][c]) G[r][c]=ABC[Math.floor(Math.random()*26)];
+}
+function fits(w,r,c,dr,dc){
+  for(let i=0;i<w.length;i++){
+    const nr=r+i*dr,nc=c+i*dc;
+    if(nr<0||nr>=N||nc<0||nc>=N) return false;
+    if(G[nr][nc]&&G[nr][nc]!==w[i]) return false;
+  }
+  return true;
+}
+function stamp(w,r,c,dr,dc){
+  const cells=[];
+  for(let i=0;i<w.length;i++){
+    const nr=r+i*dr,nc=c+i*dc;
+    G[nr][nc]=w[i];cells.push([nr,nc]);
+  }
+  return cells;
+}
+
+// ════════════════════════════════════════
+//  DOM
+// ════════════════════════════════════════
+function buildDOM(){
+  const el=document.getElementById('grid');
+  el.innerHTML='';
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+    const d=document.createElement('div');
+    d.className='cell';d.dataset.r=r;d.dataset.c=c;
+    d.textContent=G[r][c];el.appendChild(d);
+  }
+}
+const cellEl=(r,c)=>document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+
+function paint(){
+  document.querySelectorAll('.cell').forEach(el=>{el.className='cell';});
+  PW.forEach(p=>{
+    if(p.found){
+      p.cells.forEach(([r,c])=>{const e=cellEl(r,c);if(e)e.classList.add('f'+p.ci);});
+    } else if(p.hintLevel===3){
+      p.cells.forEach(([r,c])=>{const e=cellEl(r,c);if(e)e.classList.add('hperm');});
+    }
+  });
+  sel.forEach(({r,c})=>{const e=cellEl(r,c);if(e)e.classList.add('sel');});
+}
+
+function renderClues(){
+  const el=document.getElementById('clues');
+  el.innerHTML='';
+  const packTagMap={
+    roots:    '<div class="root-tag">🔤 WORD ROOT</div>',
+    science:  '<div class="sci-tag">🔬 SCIENCE</div>',
+    synonyms: '<div class="syn-tag">🔄 SYNONYM</div>',
+    antonyms: '<div class="ant-tag">⚡ ANTONYM</div>',
+  };
+  const packTag=packTagMap[curPack]||'';
+  const lvlLabel=['','1st letter shown','First 2 letters shown',''];
+  GRADES[curGrade][curPack].words.forEach((wd,i)=>{
+    const p=PW.find(x=>x.wd.w===wd.w);
+    const done=p&&p.found;
+    const lvl=p&&!done?p.hintLevel:0;
+    let cls='clue-item';
+    if(done) cls+=' done';
+    else if(lvl===3) cls+=' hinting revealed';
+    else if(lvl>0) cls+=' hinting';
+    const hintBadge=!done&&lvl>0&&lvl<3
+      ?`<div class="hint-lvl">💡 ${lvlLabel[lvl]}</div>`
+      :!done&&lvl===3
+        ?`<div class="hint-lvl lvl3">🔍 Revealed in grid — find it!</div>`
+        :'';
+    const div=document.createElement('div');
+    div.className=cls;
+    div.innerHTML=`<div class="badge">${i+1}</div>
+      <div class="clue-body">
+        ${packTag}
+        <div class="clue-text">${wd.c}</div>
+        ${hintBadge}
+        ${done?`<div class="clue-answer">✓ ${wd.w}</div>`:''}
+      </div>`;
+    el.appendChild(div);
+  });
+}
+
+function updStats(){
+  document.getElementById('ss').textContent=score;
+  document.getElementById('sf').textContent=found;
+  document.getElementById('stot').textContent=PW.length;
+}
+
+function updateHintDisplay(){
+  const unsolved=PW.filter(p=>!p.found&&p.hintLevel<3);
+  const el=document.getElementById('hint-cost');
+  if(!unsolved.length){el.textContent='All hints used';return;}
+  const inProgress=unsolved.find(p=>p.hintLevel>0);
+  const nextLvl=(inProgress?inProgress.hintLevel:0)+1;
+  const nextLabel=['','1st letter reveal','First 2 letters reveal','Full word reveal'][nextLvl]||'';
+  el.textContent=`Next hint: ${nextLabel} · −${HINT_COSTS[nextLvl]} pts`;
+}
+
+// ════════════════════════════════════════
+//  SELECTION
+// ════════════════════════════════════════
+function posFrom(e){
+  let t;
+  if(e.touches?.length){const tc=e.touches[0];t=document.elementFromPoint(tc.clientX,tc.clientY);}
+  else t=e.target.closest?.('.cell')??e.target;
+  if(!t?.dataset?.r) return null;
+  return{r:+t.dataset.r,c:+t.dataset.c};
+}
+function lineOf(r1,c1,r2,c2){
+  if(r1===r2&&c1===c2) return[{r:r1,c:c1}];
+  const dr=r2-r1,dc=c2-c1;
+  if(dr!==0&&dc!==0&&Math.abs(dr)!==Math.abs(dc)) return[{r:r1,c:c1}];
+  const len=Math.max(Math.abs(dr),Math.abs(dc));
+  const sr=dr===0?0:dr/Math.abs(dr),sc=dc===0?0:dc/Math.abs(dc);
+  if(!DIRS.some(([a,b])=>a===sr&&b===sc)) return[{r:r1,c:c1}];
+  const out=[];
+  for(let i=0;i<=len;i++) out.push({r:r1+i*sr,c:c1+i*sc});
+  return out;
+}
+function onDown(e){e.preventDefault();const p=posFrom(e);if(!p)return;SFX.tap();live=true;anchor=p;sel=[p];paint();}
+function onMove(e){e.preventDefault();if(!live)return;const p=posFrom(e);if(!p)return;
+  const ns=lineOf(anchor.r,anchor.c,p.r,p.c);if(ns.length!==sel.length){SFX.drag();sel=ns;paint();}}
+function onUp(e){e.preventDefault();if(!live)return;live=false;if(sel.length>1)checkWord();sel=[];paint();}
+
+function checkWord(){
+  for(let i=0;i<PW.length;i++){
+    const p=PW[i];
+    if(p.found||p.cells.length!==sel.length) continue;
+    if(p.cells.every(([pr,pc],k)=>pr===sel[k].r&&pc===sel[k].c)){
+      p.found=true;hist.push(i);found++;score+=100+Math.max(0,60-tsec);
+      SFX.ok();updStats();paint();renderClues();
+      if(found===PW.length) setTimeout(celebrate,600);
+      return;
+    }
+  }
+  SFX.bad();
+  const g=document.getElementById('grid');
+  g.classList.add('wrong');setTimeout(()=>g.classList.remove('wrong'),350);
+}
+
+// ════════════════════════════════════════
+//  PROGRESSIVE HINT
+//  Level 1 = first letter (-10 pts)
+//  Level 2 = first 2 letters (-20 pts)
+//  Level 3 = full word revealed, stays gold (-50 pts)
+// ════════════════════════════════════════
+function useHint(){
+  if(!gameOn) return;
+  const unsolved=PW.filter(p=>!p.found&&p.hintLevel<3);
+  if(!unsolved.length) return;
+  SFX.hint();
+  // If a word is already partially hinted (level 1 or 2), continue with that word.
+  // Only pick a fresh word when no word is in progress.
+  const inProgress=unsolved.find(p=>p.hintLevel>0);
+  const target=inProgress||unsolved[Math.floor(Math.random()*unsolved.length)];
+  target.hintLevel++;
+  const lvl=target.hintLevel;
+  score=Math.max(0,score-HINT_COSTS[lvl]);
+  updStats();renderClues();updateHintDisplay();
+  if(lvl===3){
+    paint();
+  } else {
+    const cells=target.cells.slice(0,lvl);
+    cells.forEach(([r,c])=>{
+      const el=cellEl(r,c);
+      if(el){el.classList.add('hint');setTimeout(()=>{el.classList.remove('hint');paint();},2600);}
+    });
+  }
+}
+
+// ════════════════════════════════════════
+//  UNDO
+// ════════════════════════════════════════
+function undo(){
+  if(!hist.length) return;
+  const i=hist.pop();PW[i].found=false;
+  found--;score=Math.max(0,score-100);
+  updStats();paint();renderClues();
+}
+
+// ════════════════════════════════════════
+//  TIMER
+// ════════════════════════════════════════
+function startTimer(){
+  clearInterval(tid);tsec=0;
+  tid=setInterval(()=>{
+    tsec++;
+    const m=Math.floor(tsec/60),s=(tsec%60).toString().padStart(2,'0');
+    document.getElementById('st').textContent=`${m}:${s}`;
+  },1000);
+}
+
+// ════════════════════════════════════════
+//  CELEBRATION & CONFETTI
+// ════════════════════════════════════════
+let cparts=[],craf=null;
+function celebrate(){
+  clearInterval(tid);gameOn=false;SFX.win();
+  const m=Math.floor(tsec/60),s=(tsec%60).toString().padStart(2,'0');
+  const pm=PACKS_META.find(p=>p.id===curPack);
+  document.getElementById('cels').textContent=
+    `${GRADES[curGrade].label} · ${pm.name}  •  Time: ${m}:${s}  •  Score: ${score}`;
+  document.getElementById('cel').classList.add('on');
+  launchConfetti();
+}
+function launchConfetti(){
+  const cv=document.getElementById('conf');
+  cv.width=innerWidth;cv.height=innerHeight;
+  const ctx=cv.getContext('2d');
+  cparts=Array.from({length:150},()=>({
+    x:Math.random()*cv.width,y:-20-Math.random()*cv.height*.5,
+    sz:4+Math.random()*9,hue:Math.random()*360,
+    vy:2+Math.random()*4,vx:(Math.random()-.5)*2.5,
+    rot:Math.random()*Math.PI,vr:(Math.random()-.5)*.18,
+    circle:Math.random()<.5,
+  }));
+  cancelAnimationFrame(craf);
+  (function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    let alive=false;
+    cparts.forEach(p=>{
+      p.y+=p.vy;p.x+=p.vx;p.rot+=p.vr;
+      if(p.y<cv.height+20) alive=true;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+      ctx.fillStyle=`hsl(${p.hue},88%,65%)`;
+      if(p.circle){ctx.beginPath();ctx.arc(0,0,p.sz/2,0,Math.PI*2);ctx.fill();}
+      else ctx.fillRect(-p.sz/2,-p.sz/2,p.sz,p.sz);
+      ctx.restore();
+    });
+    if(alive) craf=requestAnimationFrame(draw);
+  })();
+}
+
+// ════════════════════════════════════════
+//  NEW GAME
+// ════════════════════════════════════════
+function newGame(){
+  document.getElementById('cel').classList.remove('on');
+  cancelAnimationFrame(craf);
+  const cv=document.getElementById('conf');
+  cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+  score=0;found=0;hist=[];sel=[];live=false;anchor=null;
+  document.getElementById('st').textContent='0:00';
+  buildGrid();buildDOM();renderClues();updStats();updateHintDisplay();
+  startTimer();gameOn=true;
+}
+
+// ════════════════════════════════════════
+//  EVENTS
+// ════════════════════════════════════════
+const GEL=document.getElementById('grid');
+GEL.addEventListener('mousedown',onDown);
+document.addEventListener('mousemove',onMove);
+document.addEventListener('mouseup',onUp);
+GEL.addEventListener('touchstart',onDown,{passive:false});
+GEL.addEventListener('touchmove',onMove,{passive:false});
+GEL.addEventListener('touchend',onUp,{passive:false});
+GEL.addEventListener('touchcancel',onUp,{passive:false});
+</script>
+</body>
+</html>

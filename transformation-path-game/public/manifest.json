@@ -1,0 +1,25 @@
+{
+  "name": "Word Chain",
+  "short_name": "Word Chain",
+  "description": "Build word chains by adding, removing, or replacing one letter at a time.",
+  "start_url": "/transformation-path-game/",
+  "scope": "/transformation-path-game/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0f1a",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

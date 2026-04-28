@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bomb Tap — Odd One Out | Visual Preview</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #0d0d1a;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 440px;
+            padding: 28px 20px 90px;
+            min-height: 100vh;
+            justify-content: center;
+        }
+        .screen.active { display: flex; }
+
+        /* ── Grade Select ── */
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 6px;
+        }
+        .title {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #ff6b35;
+            letter-spacing: 2px;
+            text-shadow: 0 0 24px rgba(255,107,53,0.6);
+        }
+        .tagline {
+            font-size: 1rem;
+            color: #ff9800;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .subtitle {
+            color: #777;
+            font-size: 0.85rem;
+            margin-bottom: 36px;
+        }
+        .grade-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            width: 100%;
+        }
+        .grade-btn {
+            background: linear-gradient(160deg, #1a2040, #0f1a35);
+            border: 2px solid #ff6b35;
+            border-radius: 14px;
+            padding: 18px 8px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: white;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .grade-btn span {
+            display: block;
+            font-size: 0.62rem;
+            font-weight: 400;
+            color: #888;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+        .grade-btn:hover {
+            background: #ff6b35;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255,107,53,0.4);
+        }
+        .grade-btn:hover span { color: rgba(255,255,255,0.8); }
+
+        /* ── Game Screen ── */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 18px;
+        }
+        .grade-badge {
+            background: #ff6b35;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        .score-display {
+            text-align: right;
+        }
+        .score-display .score-val {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #ff9800;
+        }
+        .score-display .round-val {
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        /* Bomb */
+        .bomb-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 22px;
+        }
+        .bomb-emoji {
+            font-size: 4.5rem;
+            animation: sway 0.6s ease-in-out infinite;
+            transform-origin: top center;
+            filter: drop-shadow(0 0 12px rgba(255,100,0,0.5));
+        }
+        @keyframes sway {
+            0%, 100% { transform: rotate(-6deg); }
+            50%       { transform: rotate(6deg); }
+        }
+        .timer-wrap {
+            width: 220px;
+            height: 12px;
+            background: #1a1a2e;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 10px;
+            border: 1px solid #333;
+        }
+        .timer-fill {
+            height: 100%;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #4caf50, #ff9800 60%, #f44336);
+            width: 55%;
+            transition: width 0.4s linear;
+        }
+        .timer-countdown {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #f44336;
+            margin-top: 6px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Instruction */
+        .instruction {
+            font-size: 0.82rem;
+            color: #888;
+            margin-bottom: 18px;
+            text-align: center;
+            letter-spacing: 0.3px;
+        }
+        .instruction strong { color: #ff6b35; }
+
+        /* Crates */
+        .crates {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            width: 100%;
+        }
+        .crate {
+            background: linear-gradient(160deg, #7a5c1e, #5c4010);
+            border: 3px solid #b8870a;
+            border-radius: 12px;
+            padding: 32px 12px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,200,80,0.2);
+            overflow: hidden;
+        }
+        /* wood grain lines */
+        .crate::before {
+            content: '';
+            position: absolute;
+            top: 10px; left: 10px; right: 10px;
+            height: 2px;
+            background: rgba(184,135,10,0.35);
+            border-radius: 2px;
+        }
+        .crate::after {
+            content: '';
+            position: absolute;
+            bottom: 10px; left: 10px; right: 10px;
+            height: 2px;
+            background: rgba(184,135,10,0.35);
+            border-radius: 2px;
+        }
+        .crate:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 8px 28px rgba(255,107,53,0.35);
+            border-color: #ff6b35;
+        }
+        .crate .word {
+            font-size: 1.15rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+        }
+        .crate.correct {
+            background: linear-gradient(160deg, #2a5e22, #1a3d15) !important;
+            border-color: #4caf50 !important;
+            animation: pop 0.4s ease-out;
+        }
+        .crate.wrong {
+            background: linear-gradient(160deg, #5e1a1a, #3d1010) !important;
+            border-color: #f44336 !important;
+            animation: jolt 0.4s ease-out;
+        }
+        @keyframes pop  { 0% { transform: scale(1); } 50% { transform: scale(1.18); } 100% { transform: scale(1); } }
+        @keyframes jolt { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+
+        .round-footer {
+            margin-top: 16px;
+            font-size: 0.75rem;
+            color: #555;
+            text-align: center;
+        }
+
+        /* ── Boom Screen ── */
+        .result-screen {
+            text-align: center;
+        }
+        .boom-icon   { font-size: 6rem; animation: pop 0.5s ease-out; }
+        .boom-title  { font-size: 3.5rem; font-weight: 900; color: #f44336; margin: 8px 0; letter-spacing: 3px; }
+        .win-title   { font-size: 3rem;   font-weight: 900; color: #4caf50; margin: 8px 0; }
+        .result-info { color: #aaa; font-size: 0.95rem; margin-top: 8px; line-height: 1.5; }
+        .answer-reveal {
+            margin-top: 16px;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 14px 18px;
+            font-size: 0.85rem;
+            color: #ccc;
+            line-height: 1.6;
+        }
+        .answer-reveal .odd-word { color: #ff6b35; font-weight: 700; }
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 26px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 13px 24px;
+            border-radius: 30px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn-primary  { background: #ff6b35; color: white; }
+        .btn-green    { background: #4caf50; color: white; }
+        .btn-outline  { background: transparent; color: white; border: 2px solid #555; }
+
+        /* ── Mockup Nav ── */
+        .mockup-nav {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            background: rgba(5,5,20,0.9);
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid #222;
+            backdrop-filter: blur(8px);
+            white-space: nowrap;
+            z-index: 200;
+        }
+        .nav-label { color: #555; font-size: 0.7rem; align-self: center; margin-right: 2px; }
+        .nav-btn {
+            background: #1a1a2e;
+            border: 1px solid #333;
+            color: #aaa;
+            padding: 5px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover, .nav-btn.active {
+            background: #ff6b35;
+            border-color: #ff6b35;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══ SCREEN 1: Grade Select ═══ -->
+<div class="screen active" id="screen-grade">
+    <div class="logo">💣</div>
+    <div class="title">BOMB TAP</div>
+    <div class="tagline">Odd One Out</div>
+    <div class="subtitle">Find the word that doesn't belong — before the bomb explodes!</div>
+
+    <div class="grade-grid">
+        <div class="grade-btn" onclick="showScreen('game')">3<span>Grade</span></div>
+        <div class="grade-btn" onclick="showScreen('game')">4<span>Grade</span></div>
+        <div class="grade-btn" onclick="showScreen('game')">5<span>Grade</span></div>
+        <div class="grade-btn" onclick="showScreen('game')">6<span>Grade</span></div>
+        <div class="grade-btn" onclick="showScreen('game')">7<span>Grade</span></div>
+        <div class="grade-btn" onclick="showScreen('game')">8<span>Grade</span></div>
+        <div class="grade-btn" onclick="showScreen('game')">9<span>Grade</span></div>
+        <div class="grade-btn" onclick="showScreen('game')">10<span>Grade</span></div>
+    </div>
+</div>
+
+<!-- ═══ SCREEN 2: Game ═══ -->
+<div class="screen" id="screen-game">
+    <div class="game-header">
+        <div class="grade-badge">Grade 5</div>
+        <div class="score-display">
+            <div class="score-val">Score: 3</div>
+            <div class="round-val">Round 4 of 10</div>
+        </div>
+    </div>
+
+    <div class="bomb-zone">
+        <div class="bomb-emoji">💣</div>
+        <div class="timer-wrap">
+            <div class="timer-fill" id="timer-fill"></div>
+        </div>
+        <div class="timer-countdown" id="timer-text">3s</div>
+    </div>
+
+    <div class="instruction">Tap the word that does <strong>NOT</strong> belong with the others!</div>
+
+    <div class="crates" id="crates">
+        <div class="crate" onclick="tapCrate(this, false)"><div class="word">BRAVE</div></div>
+        <div class="crate" onclick="tapCrate(this, false)"><div class="word">BOLD</div></div>
+        <div class="crate" onclick="tapCrate(this, true)"><div class="word">TIMID</div></div>
+        <div class="crate" onclick="tapCrate(this, false)"><div class="word">DARING</div></div>
+    </div>
+
+    <div class="round-footer">💡 Three words share a meaning — one is the impostor!</div>
+</div>
+
+<!-- ═══ SCREEN 3: Boom ═══ -->
+<div class="screen" id="screen-boom">
+    <div class="result-screen">
+        <div class="boom-icon">💥</div>
+        <div class="boom-title">BOOM!</div>
+        <div class="result-info">Wrong crate — the bomb exploded!</div>
+        <div class="answer-reveal">
+            The odd one out was <span class="odd-word">TIMID</span>.<br>
+            <span style="color:#666; font-size:0.8rem;">BRAVE · BOLD · DARING all mean courageous.<br>TIMID means the opposite — easily frightened.</span>
+        </div>
+        <div style="color:#888; font-size:0.8rem; margin-top:14px;">Final Score: 3 / 10</div>
+        <div class="btn-row">
+            <button class="btn btn-outline" onclick="showScreen('grade')">Change Grade</button>
+            <button class="btn btn-primary" onclick="resetGame()">Try Again</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ SCREEN 4: Win ═══ -->
+<div class="screen" id="screen-win">
+    <div class="result-screen">
+        <div class="boom-icon">🎉</div>
+        <div class="win-title">DEFUSED!</div>
+        <div class="result-info">You found the odd one out!</div>
+        <div class="answer-reveal">
+            <span class="odd-word">TIMID</span> was the dud! 💣<br>
+            <span style="color:#666; font-size:0.8rem;">It means easily frightened — the opposite of the others.<br>BRAVE · BOLD · DARING all mean courageous.</span>
+        </div>
+        <div style="color:#4caf50; font-size:1.4rem; font-weight:800; margin-top:14px;">+10 pts &nbsp;🔥 Streak: 2</div>
+        <div class="btn-row">
+            <button class="btn btn-green" onclick="resetGame()">Next Round →</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Mockup Navigation ═══ -->
+<div class="mockup-nav">
+    <span class="nav-label">Preview:</span>
+    <button class="nav-btn active" id="nav-grade" onclick="showScreen('grade')">Grade Select</button>
+    <button class="nav-btn" id="nav-game"  onclick="showScreen('game')">Game</button>
+    <button class="nav-btn" id="nav-boom"  onclick="showScreen('boom')">💥 Boom</button>
+    <button class="nav-btn" id="nav-win"   onclick="showScreen('win')">🎉 Defused</button>
+</div>
+
+<script>
+    function showScreen(name) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen-' + name).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('nav-' + name).classList.add('active');
+        if (name === 'game') startTimer();
+    }
+
+    let timerInterval = null;
+    let timerSec = 5;
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        timerSec = 5;
+        updateTimer();
+        timerInterval = setInterval(() => {
+            timerSec--;
+            if (timerSec <= 0) {
+                clearInterval(timerInterval);
+                document.querySelectorAll('.crate').forEach(c => c.classList.add('wrong'));
+                setTimeout(() => showScreen('boom'), 700);
+            } else {
+                updateTimer();
+            }
+        }, 1000);
+    }
+
+    function updateTimer() {
+        const fill = document.getElementById('timer-fill');
+        const text = document.getElementById('timer-text');
+        const pct = (timerSec / 5) * 100;
+        fill.style.width = pct + '%';
+        text.textContent = timerSec + 's';
+        text.style.color = timerSec <= 2 ? '#f44336' : timerSec <= 3 ? '#ff9800' : '#4caf50';
+    }
+
+    function tapCrate(el, isOdd) {
+        clearInterval(timerInterval);
+        document.querySelectorAll('.crate').forEach(c => c.onclick = null);
+        if (isOdd) {
+            el.classList.add('correct');
+            setTimeout(() => showScreen('win'), 600);
+        } else {
+            el.classList.add('wrong');
+            document.querySelectorAll('.crate').forEach(c => {
+                if (c !== el) setTimeout(() => c.classList.add('wrong'), 150);
+            });
+            setTimeout(() => showScreen('boom'), 800);
+        }
+    }
+
+    function resetGame() {
+        document.querySelectorAll('.crate').forEach(c => {
+            c.classList.remove('correct', 'wrong');
+            c.onclick = function() {};
+        });
+        // re-attach handlers
+        const crates = document.querySelectorAll('.crate');
+        crates[0].onclick = () => tapCrate(crates[0], false);
+        crates[1].onclick = () => tapCrate(crates[1], false);
+        crates[2].onclick = () => tapCrate(crates[2], true);
+        crates[3].onclick = () => tapCrate(crates[3], false);
+        showScreen('game');
+    }
+
+    // Start on grade screen
+    showScreen('grade');
+</script>
+</body>
+</html>
