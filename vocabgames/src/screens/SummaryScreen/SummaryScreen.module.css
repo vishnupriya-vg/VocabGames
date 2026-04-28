@@ -1,0 +1,132 @@
+.container {
+  min-height: 100vh;
+  background: var(--bg, #0f1117);
+  color: var(--text, #f0f0f0);
+  padding: 32px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 480px;
+  margin: 0 auto;
+  font-family: inherit;
+}
+
+.scoreSection {
+  text-align: center;
+  padding: 32px 16px;
+  background: var(--surface, #1a1d27);
+  border-radius: 20px;
+  border: 1px solid var(--border, #2a2d3a);
+}
+
+.emoji {
+  font-size: 52px;
+  margin-bottom: 12px;
+}
+
+.scoreText {
+  font-size: 52px;
+  font-weight: 800;
+  color: #818cf8;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.pct {
+  font-size: 16px;
+  color: var(--text-muted, #aaa);
+  margin-bottom: 12px;
+}
+
+.message {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text, #f0f0f0);
+}
+
+.recap {
+  background: var(--surface, #1a1d27);
+  border-radius: 16px;
+  border: 1px solid var(--border, #2a2d3a);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.recapTitle {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted, #888);
+  margin-bottom: 12px;
+}
+
+.recapRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border, #2a2d3a);
+  font-size: 14px;
+}
+
+.recapRow:last-child {
+  border-bottom: none;
+}
+
+.recapRound {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted, #888);
+  min-width: 24px;
+}
+
+.recapPair {
+  flex: 1;
+  color: var(--text, #f0f0f0);
+  font-weight: 500;
+}
+
+.recapIcon {
+  font-size: 14px;
+  font-weight: 700;
+  width: 22px;
+  text-align: center;
+}
+
+.recapCorrect {
+  color: #4ade80;
+}
+
+.recapWrong {
+  color: #f87171;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.playAgainBtn {
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.playAgainBtn:hover {
+  background: #4f46e5;
+}
+
+.playAgainBtn:active {
+  transform: scale(0.98);
+}

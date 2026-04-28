@@ -1,0 +1,160 @@
+.container {
+  min-height: 100vh;
+  background: var(--bg, #0f1117);
+  color: var(--text, #f0f0f0);
+  padding: 24px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 480px;
+  margin: 0 auto;
+  font-family: inherit;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.roundLabel {
+  font-size: 14px;
+  color: var(--text-muted, #888);
+  font-weight: 600;
+}
+
+.badge {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.correct {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.wrong {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted, #888);
+  margin-bottom: 12px;
+}
+
+.correctPair {
+  background: var(--surface, #1a1d27);
+  border: 1px solid var(--border, #2a2d3a);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.pairRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.wordCard {
+  flex: 1;
+  background: var(--bg, #0f1117);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.wordText {
+  font-size: 16px;
+  font-weight: 700;
+  color: #818cf8;
+  margin-bottom: 4px;
+}
+
+.meaning {
+  font-size: 12px;
+  color: var(--text-muted, #aaa);
+  line-height: 1.4;
+}
+
+.connector {
+  font-size: 22px;
+  color: #6366f1;
+  flex-shrink: 0;
+}
+
+.whyCorrect {
+  font-size: 13px;
+  color: var(--text-muted, #aaa);
+  line-height: 1.5;
+  padding: 10px 12px;
+  background: rgba(99, 102, 241, 0.08);
+  border-radius: 8px;
+  border-left: 3px solid #6366f1;
+}
+
+.distractors {
+  background: var(--surface, #1a1d27);
+  border: 1px solid var(--border, #2a2d3a);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.distractorRow {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border, #2a2d3a);
+}
+
+.distractorRow:last-child {
+  border-bottom: none;
+}
+
+.distractorWord {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text, #f0f0f0);
+  min-width: 100px;
+}
+
+.distractorMeaning {
+  font-size: 13px;
+  color: var(--text-muted, #aaa);
+  line-height: 1.4;
+}
+
+.nextBtn {
+  margin-top: auto;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.nextBtn:hover {
+  background: #4f46e5;
+}
+
+.nextBtn:active {
+  transform: scale(0.98);
+}
