@@ -1,0 +1,18 @@
+.mapScreen { padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-6); }
+.header { text-align: center; }
+.title { font-size: var(--text-2xl); font-weight: 900; color: var(--text); }
+.subtitle { font-size: var(--text-sm); color: var(--text-muted); font-weight: 600; margin-top: var(--space-1); }
+
+.map { display: flex; flex-direction: column; gap: 0; }
+.row { position: relative; padding: var(--space-4) 0; }
+.offset { padding-left: 40px; }
+.connector {
+  position: absolute;
+  top: -1px;
+  left: 32px;
+  width: 2px;
+  height: calc(var(--space-4) + 2px);
+  background: var(--border);
+  border-left: 2px dashed var(--border);
+}
+.offset .connector { left: 72px; }

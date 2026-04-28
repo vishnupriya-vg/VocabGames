@@ -1,0 +1,33 @@
+.modeSelect { padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-6); }
+.back {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--text-base);
+  font-weight: 700;
+  text-align: left;
+  padding: 0;
+}
+.back:hover { color: var(--text); }
+.levelInfo { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); text-align: center; }
+.icon { font-size: 48px; }
+.levelName { font-size: var(--text-2xl); font-weight: 900; color: var(--text); }
+.levelNum { font-size: var(--text-sm); color: var(--text-muted); font-weight: 600; }
+.modes { display: flex; flex-direction: column; gap: var(--space-3); }
+.modeCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.modeCard:hover { border-color: var(--primary); background: var(--card-hover); transform: translateY(-2px); }
+.modeIcon { font-size: 32px; flex-shrink: 0; }
+.modeName { font-size: var(--text-base); font-weight: 800; color: var(--text); }
+.modeDesc { font-size: var(--text-sm); color: var(--text-muted); margin-top: 2px; }
+.arrow { margin-left: auto; color: var(--primary); font-size: var(--text-xl); flex-shrink: 0; }
