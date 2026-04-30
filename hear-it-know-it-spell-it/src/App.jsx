@@ -1,122 +1,112 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useMemo } from 'react';
+import { WORDS } from './data/wordlist.js';
+import HomeScreen from './components/HomeScreen.jsx';
+import MCQStage from './components/MCQStage.jsx';
+import SpellingStage from './components/SpellingStage.jsx';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [screen, setScreen]   = useState('home');   // 'home' | 'mcq' | 'spelling' | 'summary'
+  const [grade, setGrade]     = useState(null);
+  const [wordIdx, setWordIdx] = useState(0);         // 0–24
+  const [results, setResults] = useState([]);        // per-word results for SessionSummary
+
+  const gradeWords = useMemo(
+    () => (grade ? WORDS.filter(w => w.grade === grade) : []),
+    [grade]
+  );
+
+  const currentWord  = gradeWords[wordIdx];
+  const round        = Math.floor(wordIdx / 5) + 1;
+  const wordInRound  = (wordIdx % 5) + 1;
+
+  function handleGradeSelect(g) {
+    setGrade(g);
+    setWordIdx(0);
+    setResults([]);
+    setScreen('mcq');
+  }
+
+  function handleMCQComplete(mcqResult) {
+    setResults(prev => {
+      const next = [...prev];
+      next[wordIdx] = { word: currentWord, mcq: mcqResult, spelling: null };
+      return next;
+    });
+    setScreen('spelling');
+  }
+
+  // Called by SpellingStage once it's built
+  function handleSpellingComplete(spellingResult) {
+    setResults(prev => {
+      const next = [...prev];
+      next[wordIdx] = { ...next[wordIdx], spelling: spellingResult };
+      return next;
+    });
+    advanceToNextWord();
+  }
+
+  function advanceToNextWord() {
+    if (wordIdx < gradeWords.length - 1) {
+      setWordIdx(i => i + 1);
+      setScreen('mcq');
+    } else {
+      setScreen('summary');
+    }
+  }
+
+  function handlePlayAgain() {
+    setWordIdx(0);
+    setResults([]);
+    setScreen('mcq');
+  }
+
+  function handleChooseGrade() {
+    setGrade(null);
+    setWordIdx(0);
+    setResults([]);
+    setScreen('home');
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app">
+      {screen === 'home' && (
+        <HomeScreen onGradeSelect={handleGradeSelect} />
+      )}
 
-      <div className="ticks"></div>
+      {screen === 'mcq' && currentWord && (
+        <MCQStage
+          key={`mcq-${grade}-${wordIdx}`}
+          wordData={currentWord}
+          round={round}
+          wordInRound={wordInRound}
+          onComplete={handleMCQComplete}
+        />
+      )}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      {screen === 'spelling' && currentWord && (
+        <SpellingStage
+          key={`spelling-${grade}-${wordIdx}`}
+          wordData={currentWord}
+          round={round}
+          wordInRound={wordInRound}
+          isLastWord={wordIdx === gradeWords.length - 1}
+          onComplete={handleSpellingComplete}
+          onHome={handleChooseGrade}
+        />
+      )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {/* SessionSummary placeholder — replaced when SessionSummary is built */}
+      {screen === 'summary' && (
+        <div className="stage-placeholder">
+          <p className="placeholder-label">Session Complete!</p>
+          <p className="placeholder-note">{gradeWords.length} words done · Summary coming soon.</p>
+          <div className="placeholder-actions">
+            <button className="placeholder-btn" onClick={handlePlayAgain}>Play Again</button>
+            <button className="placeholder-btn secondary" onClick={handleChooseGrade}>Choose Grade</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
-
-export default App

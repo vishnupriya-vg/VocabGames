@@ -1,0 +1,274 @@
+.spelling-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px 16px 32px;
+}
+
+/* ── Progress ─────────────────────────────────────────────── */
+
+.spell-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.spell-meta {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.spell-pdots {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.spell-pdot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s;
+}
+.spell-pdot.done    { background: var(--primary); }
+.spell-pdot.current {
+  background: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* ── Audio + attempt dots ─────────────────────────────────── */
+
+.spell-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.attempt-dots {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.attempt-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  transition: background 0.3s, transform 0.3s;
+}
+.attempt-dot.active {
+  background: var(--primary);
+  transform: scale(1.1);
+}
+.attempt-dot.used {
+  background: var(--border);
+  transform: scale(0.9);
+}
+
+/* ── Dash row ─────────────────────────────────────────────── */
+
+.dash-row {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+.dash-cell {
+  flex: 1;
+  max-width: 54px;
+  height: 54px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(14px, 3vw, 22px);
+  font-weight: 800;
+  letter-spacing: 0;
+  color: var(--text);
+  background: var(--surface);
+  text-transform: uppercase;
+  transition: border-color 0.15s, background 0.2s, color 0.2s;
+}
+
+/* A letter has been typed into this cell */
+.dash-cell.cell-filled {
+  border-color: var(--text-secondary);
+}
+
+/* Locked by a spelling hint */
+.dash-cell.cell-locked {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Wordle evaluation states (applied after Check) */
+.dash-cell.cell-correct {
+  background: var(--success);
+  border-color: var(--success);
+  color: #fff;
+  animation: cell-pop 0.35s ease;
+}
+
+.dash-cell.cell-present {
+  background: var(--warning);
+  border-color: var(--warning);
+  color: #fff;
+}
+
+.dash-cell.cell-absent {
+  background: #6b7280;
+  border-color: #6b7280;
+  color: #fff;
+}
+
+/* Reveal animation after all 3 attempts fail */
+.dash-cell.cell-reveal {
+  opacity: 0;
+  animation: cell-reveal 0.28s ease forwards;
+  background: var(--error-light);
+  border-color: var(--error);
+  color: var(--error);
+  font-weight: 800;
+}
+
+@keyframes cell-pop {
+  0%  { transform: scale(1); }
+  45% { transform: scale(1.14); }
+  100%{ transform: scale(1); }
+}
+
+@keyframes cell-reveal {
+  from { opacity: 0; transform: translateY(10px) scale(0.75); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ── Phase feedback messages ──────────────────────────────── */
+
+.spell-feedback {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 10px;
+}
+
+.spell-correct {
+  color: #14532d;
+  background: var(--success-light);
+}
+
+.spell-failed {
+  color: var(--text-secondary);
+  background: #f9fafb;
+  font-weight: 400;
+  font-size: 14px;
+}
+
+/* ── Check + hint controls ────────────────────────────────── */
+
+.spell-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.check-btn {
+  width: 100%;
+  min-height: 54px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, opacity 0.15s;
+}
+
+.check-btn:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.check-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.spell-hint-btn {
+  width: 100%;
+  min-height: 44px;
+  background: transparent;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.spell-hint-btn:hover {
+  border-color: var(--warning);
+  color: var(--warning);
+  background: var(--warning-light);
+}
+
+/* ── Failed-state buttons ─────────────────────────────────── */
+
+.failed-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn-home {
+  padding: 13px 24px;
+  min-height: 50px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 2px solid var(--border);
+  border-radius: 100px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.btn-home:hover {
+  border-color: var(--text-secondary);
+  color: var(--text);
+}
+
+.btn-next {
+  padding: 13px 30px;
+  min-height: 50px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 100px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-next:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
