@@ -1,0 +1,105 @@
+.sp-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* ── Home button ── */
+
+.sp-home-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  min-height: 36px;
+  transition: color 0.15s, background 0.15s;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.sp-home-btn:hover {
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+/* ── Round icons ── */
+
+.sp-rounds {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.sp-round-icon {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2.5px solid var(--border);
+  background: var(--bg);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.3s;
+}
+
+.sp-round-icon.sp-icon-done {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px #fef3c7;
+}
+
+.sp-round-icon.sp-icon-current {
+  border-color: var(--primary);
+}
+
+/* Fill bar inside icon */
+.sp-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 100%;
+  background: var(--primary-light);
+  transition: width 0.4s ease;
+}
+
+.sp-icon-done .sp-fill {
+  background: #fef3c7;
+  width: 100% !important;
+}
+
+.sp-rnum {
+  position: relative;
+  z-index: 1;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  line-height: 1;
+}
+
+.sp-icon-done    .sp-rnum { color: #92400e; }
+.sp-icon-current .sp-rnum { color: var(--primary); }
+
+/* ── Label ── */
+
+.sp-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}

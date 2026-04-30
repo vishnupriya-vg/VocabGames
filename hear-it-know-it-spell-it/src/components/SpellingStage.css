@@ -5,43 +5,7 @@
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  padding: 20px 16px 32px;
-}
-
-/* ── Progress ─────────────────────────────────────────────── */
-
-.spell-progress {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.spell-meta {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-
-.spell-pdots {
-  display: flex;
-  gap: 6px;
-  flex: 1;
-  justify-content: center;
-}
-
-.spell-pdot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--border);
-  transition: background 0.2s;
-}
-.spell-pdot.done    { background: var(--primary); }
-.spell-pdot.current {
-  background: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light);
+  padding: 16px 16px 32px;
 }
 
 /* ── Audio + attempt dots ─────────────────────────────────── */
@@ -227,48 +191,27 @@
   background: var(--warning-light);
 }
 
-/* ── Failed-state buttons ─────────────────────────────────── */
+/* ── Continue button (after failed) ──────────────────────── */
 
-.failed-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-}
-
-.btn-home {
-  padding: 13px 24px;
-  min-height: 50px;
-  background: transparent;
-  color: var(--text-secondary);
-  border: 2px solid var(--border);
-  border-radius: 100px;
-  font-size: 15px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.btn-home:hover {
-  border-color: var(--text-secondary);
-  color: var(--text);
-}
-
-.btn-next {
-  padding: 13px 30px;
-  min-height: 50px;
+.btn-continue {
+  width: 100%;
+  min-height: 54px;
   background: var(--primary);
   color: #fff;
   border: none;
   border-radius: 100px;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  box-shadow: 0 3px 10px rgba(79, 70, 229, 0.35);
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
 }
 
-.btn-next:hover {
+.btn-continue:hover {
   background: var(--primary-hover);
   transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(79, 70, 229, 0.4);
 }
+
+.btn-continue:active { transform: translateY(0); }

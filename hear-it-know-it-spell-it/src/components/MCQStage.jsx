@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSpeech } from '../hooks/useSpeech';
 import { useTimer } from '../hooks/useTimer';
+import WordTrack from './WordTrack.jsx';
 import './MCQStage.css';
+
+function articleFor(pos) {
+  return /^[aeiou]/i.test(pos) ? 'an' : 'a';
+}
 
 function shuffleArray(arr) {
   const a = [...arr];
@@ -13,7 +18,7 @@ function shuffleArray(arr) {
 }
 
 // result shape: { correct, hintsUsed, points, secondsLeft }
-export default function MCQStage({ wordData, round, wordInRound, onComplete }) {
+export default function MCQStage({ wordData, onComplete }) {
   const [options] = useState(() =>
     shuffleArray([
       { text: wordData.definition, isCorrect: true },
@@ -27,17 +32,14 @@ export default function MCQStage({ wordData, round, wordInRound, onComplete }) {
   const [answerRevealed, setAnswerRevealed] = useState(false);
   const [selectedIdx, setSelectedIdx]       = useState(null);
   const [answered, setAnswered]             = useState(false);
+  const [heardOnce, setHeardOnce]           = useState(false);
 
-  // Refs for values read inside timer callbacks (avoids stale-closure risk)
   const hintsUsedRef    = useRef(0);
   const completedRef    = useRef(false);
   const timerStartedRef = useRef(false);
-  const timeoutRef      = useRef(null);
+  const pendingResultRef = useRef(null);
 
-  useEffect(() => () => {
-    clearTimeout(timeoutRef.current);
-    completedRef.current = true;
-  }, []);
+  useEffect(() => () => { completedRef.current = true; }, []);
 
   function finish(result) {
     if (completedRef.current) return;
@@ -45,51 +47,44 @@ export default function MCQStage({ wordData, round, wordInRound, onComplete }) {
     onComplete(result);
   }
 
-  // Called by useTimer when the 30 s run out
   function handleExpire() {
     if (completedRef.current) return;
+    pendingResultRef.current = {
+      correct: false,
+      hintsUsed: hintsUsedRef.current,
+      points: 0,
+      secondsLeft: 0,
+    };
     setAnswered(true);
-    timeoutRef.current = setTimeout(
-      () => finish({ correct: false, hintsUsed: hintsUsedRef.current, points: 0, secondsLeft: 0 }),
-      2000
-    );
   }
 
   const { secondsLeft, start: startTimer, stop: stopTimer } = useTimer(30, {
     onExpire: handleExpire,
   });
 
-  const { speak, isSpeaking, isReady } = useSpeech(wordData.word);
+  const { speak, isSpeaking } = useSpeech(wordData.word);
 
   const triggerSpeak = useCallback(() => {
     speak();
+    setHeardOnce(true);
     if (!timerStartedRef.current) {
       timerStartedRef.current = true;
       startTimer();
     }
   }, [speak, startTimer]);
 
-  // Auto-play as soon as voices are loaded
-  useEffect(() => {
-    if (isReady) triggerSpeak();
-  }, [isReady, triggerSpeak]);
-
   function handleSelect(idx) {
     if (answered || answerRevealed || idx === eliminatedIdx) return;
 
     const correct = options[idx].isCorrect;
+    const base    = [100, 50, 25, 0][Math.min(hintsUsedRef.current, 3)];
+    const timeBonus = correct ? Math.floor((secondsLeft / 30) * 50) : 0;
+    const points  = correct ? base + timeBonus : 0;
+
+    pendingResultRef.current = { correct, hintsUsed: hintsUsedRef.current, points, secondsLeft };
     setSelectedIdx(idx);
     setAnswered(true);
     stopTimer();
-
-    const base = [100, 50, 25, 0][Math.min(hintsUsedRef.current, 3)];
-    const timeBonus = correct ? Math.floor((secondsLeft / 30) * 50) : 0;
-    const points = correct ? base + timeBonus : 0;
-
-    timeoutRef.current = setTimeout(
-      () => finish({ correct, hintsUsed: hintsUsedRef.current, points, secondsLeft }),
-      1500
-    );
   }
 
   function handleHint() {
@@ -99,9 +94,8 @@ export default function MCQStage({ wordData, round, wordInRound, onComplete }) {
     setHintsUsed(next);
 
     if (next === 1) {
-      // Eliminate a random wrong option that hasn't been eliminated yet
       const candidates = options
-        .map((o, i) => i)
+        .map((_, i) => i)
         .filter(i => !options[i].isCorrect && i !== eliminatedIdx);
       setEliminatedIdx(candidates[Math.floor(Math.random() * candidates.length)]);
     } else if (next === 2) {
@@ -112,13 +106,16 @@ export default function MCQStage({ wordData, round, wordInRound, onComplete }) {
     }
   }
 
-  function handleContinueAfterReveal() {
-    finish({ correct: false, hintsUsed: hintsUsedRef.current, points: 0, secondsLeft });
+  function handleAdvance() {
+    if (answerRevealed) {
+      finish({ correct: false, hintsUsed: hintsUsedRef.current, points: 0, secondsLeft });
+    } else {
+      finish(pendingResultRef.current);
+    }
   }
 
   function getOptionClass(idx) {
-    if (idx === eliminatedIdx) return 'option-eliminated';
-    // Hint-3 reveal: highlight correct before any click
+    if (idx === eliminatedIdx)                    return 'option-eliminated';
     if (answerRevealed && options[idx].isCorrect) return 'option-revealed';
     if (answered) {
       if (options[idx].isCorrect) return 'option-correct';
@@ -127,40 +124,33 @@ export default function MCQStage({ wordData, round, wordInRound, onComplete }) {
     return '';
   }
 
-  const timerPct   = (secondsLeft / 30) * 100;
-  const timerClass = secondsLeft <= 5 ? 'danger' : secondsLeft <= 10 ? 'warning' : '';
-  const showHint   = !answered && !answerRevealed && hintsUsed < 3;
+  const timerPct    = (secondsLeft / 30) * 100;
+  const timerClass  = secondsLeft <= 5 ? 'danger' : secondsLeft <= 10 ? 'warning' : '';
+  const showHint    = !answered && !answerRevealed && hintsUsed < 3;
+  const showAdvance = answered || answerRevealed;
+  const isCorrect   = selectedIdx !== null && options[selectedIdx]?.isCorrect;
+
+  const mcqOutcome = answered
+    ? (isCorrect ? 'correct' : 'wrong')
+    : answerRevealed ? 'wrong'
+    : null;
 
   const hintLabels = [
-    'Hint: Remove a wrong answer (−50 pts)',
-    'Hint: Show part of speech (−25 pts more)',
-    'Hint: Reveal the answer (0 pts for this question)',
+    '💡 Use Hint · −50 pts',
+    '💡 Use Hint · −25 pts',
+    '💡 Reveal Answer (0 pts for this word)',
   ];
 
   return (
     <div className="mcq-stage">
 
-      {/* Progress */}
-      <div className="mcq-progress">
-        <span className="mcq-round-label">Round {round}</span>
-        <div className="mcq-dots">
-          {Array.from({ length: 5 }, (_, i) => (
-            <span
-              key={i}
-              className={`mcq-dot ${i < wordInRound - 1 ? 'done' : i === wordInRound - 1 ? 'current' : ''}`}
-            />
-          ))}
-        </div>
-        <span className="mcq-word-label">Word {wordInRound} of 5</span>
-      </div>
+      {/* Word Track */}
+      <WordTrack heard={heardOnce} mcqOutcome={mcqOutcome} spellOutcome={null} />
 
       {/* Timer */}
       <div className="timer-row">
         <div className="timer-track">
-          <div
-            className={`timer-fill ${timerClass}`}
-            style={{ width: `${timerPct}%` }}
-          />
+          <div className={`timer-fill ${timerClass}`} style={{ width: `${timerPct}%` }} />
         </div>
         <span className={`timer-secs ${timerClass}`}>{secondsLeft}s</span>
       </div>
@@ -168,23 +158,25 @@ export default function MCQStage({ wordData, round, wordInRound, onComplete }) {
       {/* Audio button */}
       <div className="audio-row">
         <button
-          className={`audio-btn ${isSpeaking ? 'speaking' : ''}`}
+          className={`audio-btn${isSpeaking ? ' speaking' : ''}`}
           onClick={triggerSpeak}
-          aria-label="Hear the word again"
+          aria-label="Hear the word"
         >
           <SpeakerIcon />
-          <span>{isSpeaking ? 'Listening…' : 'Hear the word'}</span>
+          <span>{isSpeaking ? '🎧 Listening…' : '🎧 Tap to hear the word'}</span>
         </button>
+
+        <div className="mcq-instructions">
+          <p>Listen to the word, then choose the correct meaning.</p>
+          <p>You can replay as many times as you like!</p>
+        </div>
 
         {posRevealed && (
           <p className="pos-hint">
-            This word is a <strong>{wordData.partOfSpeech}</strong>
+            This word is {articleFor(wordData.partOfSpeech)} <strong>{wordData.partOfSpeech}</strong>
           </p>
         )}
       </div>
-
-      {/* Question prompt */}
-      <p className="mcq-prompt">Choose the correct meaning:</p>
 
       {/* Options */}
       <div className="options-grid">
@@ -200,18 +192,7 @@ export default function MCQStage({ wordData, round, wordInRound, onComplete }) {
         ))}
       </div>
 
-      {/* Feedback message after answering */}
-      {answered && !answerRevealed && (
-        <p className={`answer-msg ${selectedIdx !== null && options[selectedIdx]?.isCorrect ? 'msg-correct' : 'msg-wrong'}`}>
-          {selectedIdx !== null && options[selectedIdx]?.isCorrect
-            ? 'Correct!'
-            : secondsLeft === 0
-              ? "Time’s up—here’s the answer."
-              : "Not quite — here’s the correct answer."}
-        </p>
-      )}
-
-      {/* Hint button */}
+      {/* Hint button — below options, hidden after answering */}
       {showHint && (
         <div className="hint-row">
           <button className="hint-btn" onClick={handleHint}>
@@ -220,14 +201,27 @@ export default function MCQStage({ wordData, round, wordInRound, onComplete }) {
         </div>
       )}
 
-      {/* Continue button after hint-3 reveal */}
+      {/* Feedback after answer */}
+      {answered && !answerRevealed && (
+        <p className={`answer-msg ${isCorrect ? 'msg-correct' : 'msg-wrong'}`}>
+          {isCorrect
+            ? 'Correct!'
+            : secondsLeft === 0
+              ? "Time's up — here's the correct answer."
+              : "Not quite — here's the correct answer."}
+        </p>
+      )}
+
+      {/* Hint-3 reveal message */}
       {answerRevealed && (
-        <div className="reveal-row">
-          <p className="reveal-msg">The correct answer is highlighted above.</p>
-          <button className="continue-btn" onClick={handleContinueAfterReveal}>
-            Continue
-          </button>
-        </div>
+        <p className="reveal-msg">The correct answer is highlighted above.</p>
+      )}
+
+      {/* Manual advance button */}
+      {showAdvance && (
+        <button className="advance-btn" onClick={handleAdvance}>
+          {isCorrect ? 'Next → Spell It!' : 'Continue to Spelling →'}
+        </button>
       )}
     </div>
   );
@@ -235,7 +229,7 @@ export default function MCQStage({ wordData, round, wordInRound, onComplete }) {
 
 function SpeakerIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
       <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
     </svg>
   );

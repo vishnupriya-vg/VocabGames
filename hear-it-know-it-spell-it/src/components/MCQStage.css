@@ -5,43 +5,8 @@
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  padding: 24px 20px 40px;
+  padding: 20px 20px 40px;
 }
-
-/* ── Progress ── */
-
-.mcq-progress {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.mcq-round-label,
-.mcq-word-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-
-.mcq-dots {
-  display: flex;
-  gap: 6px;
-  flex: 1;
-  justify-content: center;
-}
-
-.mcq-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--border);
-  transition: background 0.2s;
-}
-
-.mcq-dot.done    { background: var(--primary); }
-.mcq-dot.current { background: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
 
 /* ── Timer ── */
 
@@ -138,15 +103,22 @@
   text-align: center;
 }
 
-/* ── Prompt ── */
+/* ── Instructions ── */
 
-.mcq-prompt {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-secondary);
+.mcq-instructions {
   text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+}
+
+.mcq-instructions p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.mcq-instructions p:first-child {
+  font-weight: 600;
+  color: var(--text);
 }
 
 /* ── Options ── */
@@ -260,36 +232,35 @@
   background: var(--warning-light);
 }
 
-/* ── Hint-3 continue ── */
-
-.reveal-row {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
+/* ── Reveal message ── */
 
 .reveal-msg {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--text-secondary);
   text-align: center;
 }
 
-.continue-btn {
-  padding: 14px 40px;
-  min-height: 52px;
+/* ── Manual advance button ── */
+
+.advance-btn {
+  width: 100%;
+  min-height: 54px;
   background: var(--primary);
   color: #fff;
   border: none;
   border-radius: 100px;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  box-shadow: 0 3px 10px rgba(79, 70, 229, 0.35);
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
 }
 
-.continue-btn:hover {
+.advance-btn:hover {
   background: var(--primary-hover);
   transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(79, 70, 229, 0.4);
 }
+
+.advance-btn:active { transform: translateY(0); }

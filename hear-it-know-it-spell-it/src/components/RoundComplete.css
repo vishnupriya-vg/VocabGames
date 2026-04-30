@@ -1,0 +1,142 @@
+.rc-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 28px 20px 48px;
+}
+
+/* ── Hero ─────────────────────────────────────────────────── */
+
+.rc-hero {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.rc-label {
+  font-size: clamp(24px, 6vw, 36px);
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+}
+
+.rc-emoji { font-size: 52px; line-height: 1; }
+
+.rc-perfect-msg {
+  font-size: 16px;
+  font-weight: 700;
+  color: #92400e;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 100px;
+  padding: 5px 18px;
+}
+
+/* ── Score box ────────────────────────────────────────────── */
+
+.rc-score-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--primary-light);
+  border: 1.5px solid #c7d2fe;
+  border-radius: 16px;
+}
+
+.rc-score-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.rc-score-value {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--primary);
+  letter-spacing: -0.03em;
+}
+
+/* ── Word list ────────────────────────────────────────────── */
+
+.rc-word-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.rc-word-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.rc-word-name {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.rc-mini-track {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.mini-node {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mini-green { background: var(--success); }
+.mini-red   { background: var(--error); }
+
+.rc-word-pts {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  min-width: 44px;
+  text-align: right;
+}
+
+/* ── Button ───────────────────────────────────────────────── */
+
+.rc-btn {
+  width: 100%;
+  min-height: 56px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 100px;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.38);
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+
+.rc-btn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.42);
+}
+
+.rc-btn:active { transform: translateY(0); }

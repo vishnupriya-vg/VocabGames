@@ -62,3 +62,32 @@ button {
   min-height: 44px;
   min-width: 44px;
 }
+
+/* ── Shared top-bar home button (HowToPlay, SessionSummary) ── */
+
+.page-top-bar {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  width: 100%;
+}
+
+.page-home-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 6px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  min-height: 36px;
+  min-width: 0;
+  font-family: inherit;
+  transition: color 0.15s, background 0.15s;
+}
+
+.page-home-btn:hover {
+  color: var(--primary);
+  background: var(--primary-light);
+}

@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSpeech } from '../hooks/useSpeech';
 import { useTimer } from '../hooks/useTimer';
 import Keyboard from './Keyboard.jsx';
+import WordTrack from './WordTrack.jsx';
 import './SpellingStage.css';
 
-// Wordle-style evaluation: correct position = 'correct', right letter wrong position = 'present', not in word = 'absent'
 function evaluateAttempt(inputArr, targetStr) {
   const n = targetStr.length;
   const result = Array(n).fill('absent');
@@ -26,7 +26,6 @@ function evaluateAttempt(inputArr, targetStr) {
   return result;
 }
 
-// Base points by attempt index (0 = first attempt)
 const BASE_POINTS = [150, 75, 25];
 
 function computePoints(attemptIdx, spellingHints, secondsLeft) {
@@ -37,40 +36,35 @@ function computePoints(attemptIdx, spellingHints, secondsLeft) {
 
 export default function SpellingStage({
   wordData,
-  round,
-  wordInRound,
-  isLastWord,
+  mcqOutcome,
   onComplete,
-  onHome,
 }) {
   const target = wordData.word.toUpperCase();
   const n = target.length;
 
   const [letters, setLetters]       = useState(() => Array(n).fill(''));
   const [locked, setLocked]         = useState(() => new Set());
-  const [attempts, setAttempts]     = useState(0);      // failed attempts so far
-  const [evalResult, setEvalResult] = useState(null);   // null | ('correct'|'present'|'absent')[]
-  const [phase, setPhase]           = useState('typing'); // 'typing' | 'result' | 'solved' | 'failed'
+  const [attempts, setAttempts]     = useState(0);
+  const [evalResult, setEvalResult] = useState(null);
+  const [phase, setPhase]           = useState('typing');
   const [hintsUsed, setHintsUsed]   = useState(0);
 
-  // Refs keep callbacks in sync without stale closures
-  const phaseRef        = useRef('typing');
-  const attemptsRef     = useRef(0);
-  const hintsUsedRef    = useRef(0);
-  const lockedRef       = useRef(new Set());
-  const completedRef    = useRef(false);
-  const resultTimerRef  = useRef(null);
-  const solveTimerRef   = useRef(null);
-  const handlersRef     = useRef(null); // physical-keyboard handler cache
+  const phaseRef       = useRef('typing');
+  const attemptsRef    = useRef(0);
+  const hintsUsedRef   = useRef(0);
+  const lockedRef      = useRef(new Set());
+  const completedRef   = useRef(false);
+  const resultTimerRef = useRef(null);
+  const solveTimerRef  = useRef(null);
+  const handlersRef    = useRef(null);
 
-  function setPhaseSync(p)     { phaseRef.current = p;     setPhase(p); }
-  function setAttemptsSync(a)  { attemptsRef.current = a;  setAttempts(a); }
-  function setHintsSync(h)     { hintsUsedRef.current = h; setHintsUsed(h); }
+  function setPhaseSync(p)    { phaseRef.current = p;     setPhase(p); }
+  function setAttemptsSync(a) { attemptsRef.current = a;  setAttempts(a); }
+  function setHintsSync(h)    { hintsUsedRef.current = h; setHintsUsed(h); }
 
-  // Synchronise locked Set into both ref and state
   function syncLock(nextLocked) {
     lockedRef.current = nextLocked;
-    setLocked(new Set(nextLocked)); // new Set so React detects the change
+    setLocked(new Set(nextLocked));
   }
 
   useEffect(() => () => {
@@ -85,7 +79,6 @@ export default function SpellingStage({
     onComplete(result);
   }
 
-  // Called by useTimer when 60 s elapse
   function handleExpire() {
     const p = phaseRef.current;
     if (p !== 'typing' && p !== 'result') return;
@@ -97,21 +90,18 @@ export default function SpellingStage({
     onExpire: handleExpire,
   });
 
-  const { speak, isSpeaking, isReady } = useSpeech(wordData.word);
+  const { speak, isSpeaking } = useSpeech(wordData.word);
   const timerStartedRef = useRef(false);
+  const [heardOnce, setHeardOnce] = useState(false);
 
   const triggerSpeak = useCallback(() => {
     speak();
+    setHeardOnce(true);
     if (!timerStartedRef.current) {
       timerStartedRef.current = true;
       startTimer();
     }
   }, [speak, startTimer]);
-
-  // Auto-play as soon as voices are ready
-  useEffect(() => {
-    if (isReady) triggerSpeak();
-  }, [isReady, triggerSpeak]);
 
   // ── Input handlers ────────────────────────────────────────────────────────
 
@@ -142,7 +132,7 @@ export default function SpellingStage({
 
   function handleCheck() {
     if (phaseRef.current !== 'typing') return;
-    if (!letters.every(l => l !== '')) return; // not fully filled
+    if (!letters.every(l => l !== '')) return;
 
     const result = evaluateAttempt(letters, target);
     const allCorrect = result.every(r => r === 'correct');
@@ -155,15 +145,14 @@ export default function SpellingStage({
       setPhaseSync('solved');
       solveTimerRef.current = setTimeout(() => {
         finish({
-          correct:   true,
-          attempts:  attemptsRef.current,
-          hintsUsed: hintsUsedRef.current,
-          points:    pts,
+          correct:     true,
+          attempts:    attemptsRef.current,
+          hintsUsed:   hintsUsedRef.current,
+          points:      pts,
           secondsLeft: sl,
         });
-      }, 1500);
+      }, 1200);
     } else {
-      // Increment attempts immediately so dots update during result display
       const newAttempts = attemptsRef.current + 1;
       setAttemptsSync(newAttempts);
       setPhaseSync('result');
@@ -173,7 +162,6 @@ export default function SpellingStage({
           stopTimer();
           setPhaseSync('failed');
         } else {
-          // Clear non-locked letters and allow another attempt
           setLetters(prev => prev.map((l, i) => lockedRef.current.has(i) ? l : ''));
           setEvalResult(null);
           setPhaseSync('typing');
@@ -194,7 +182,6 @@ export default function SpellingStage({
     nextLocked.add(idx);
     syncLock(nextLocked);
     setHintsSync(hintsUsedRef.current + 1);
-    // Place the correct letter (locked, won't be cleared)
     setLetters(prev => {
       const next = [...prev];
       next[idx] = target[idx];
@@ -202,22 +189,21 @@ export default function SpellingStage({
     });
   }
 
-  // Keep physical-keyboard handlers fresh on every render
   handlersRef.current = { handleKey, handleBackspace, handleCheck };
 
   useEffect(() => {
     function onKeyDown(e) {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const { handleKey, handleBackspace, handleCheck } = handlersRef.current;
-      if      (e.key === 'Backspace')          { e.preventDefault(); handleBackspace(); }
-      else if (e.key === 'Enter')              { e.preventDefault(); handleCheck(); }
-      else if (/^[a-zA-Z]$/.test(e.key))      { handleKey(e.key.toUpperCase()); }
+      if      (e.key === 'Backspace')       { e.preventDefault(); handleBackspace(); }
+      else if (e.key === 'Enter')           { e.preventDefault(); handleCheck(); }
+      else if (/^[a-zA-Z]$/.test(e.key))   { handleKey(e.key.toUpperCase()); }
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  // ── Derived display values ────────────────────────────────────────────────
+  // ── Derived values ────────────────────────────────────────────────────────
 
   const allFilled  = letters.every(l => l !== '');
   const dotsLeft   = Math.max(0, 3 - attempts);
@@ -226,16 +212,17 @@ export default function SpellingStage({
   const canHint    = phase === 'typing' && locked.size < n;
   const showControls = phase !== 'solved' && phase !== 'failed';
 
+  const spellOutcome = phase === 'solved' ? 'correct' : phase === 'failed' ? 'wrong' : null;
+
   function getCellClass(i) {
     const parts = [];
-    if (locked.has(i))                parts.push('cell-locked');
-    else if (letters[i] && phase === 'typing') parts.push('cell-filled');
+    if (locked.has(i))                           parts.push('cell-locked');
+    else if (letters[i] && phase === 'typing')   parts.push('cell-filled');
 
     if ((phase === 'result' || phase === 'solved') && evalResult) {
       parts.push(`cell-${evalResult[i]}`);
     }
     if (phase === 'failed') parts.push('cell-reveal');
-
     return parts.join(' ');
   }
 
@@ -244,21 +231,8 @@ export default function SpellingStage({
   return (
     <div className="spelling-stage">
 
-      {/* Progress indicator */}
-      <div className="spell-progress">
-        <span className="spell-meta">Round {round}</span>
-        <div className="spell-pdots">
-          {Array.from({ length: 5 }, (_, i) => (
-            <span
-              key={i}
-              className={`spell-pdot ${
-                i < wordInRound - 1 ? 'done' : i === wordInRound - 1 ? 'current' : ''
-              }`}
-            />
-          ))}
-        </div>
-        <span className="spell-meta">Word {wordInRound} of 5</span>
-      </div>
+      {/* Word Track */}
+      <WordTrack heard={heardOnce} mcqOutcome={mcqOutcome} spellOutcome={spellOutcome} />
 
       {/* Timer bar */}
       <div className="timer-row">
@@ -271,12 +245,12 @@ export default function SpellingStage({
       {/* Audio + attempt dots */}
       <div className="spell-top-row">
         <button
-          className={`audio-btn ${isSpeaking ? 'speaking' : ''}`}
+          className={`audio-btn${isSpeaking ? ' speaking' : ''}`}
           onClick={triggerSpeak}
           aria-label="Hear the word again"
         >
           <SpeakerIcon />
-          <span>{isSpeaking ? 'Listening…' : 'Hear the word'}</span>
+          <span>{isSpeaking ? '🎧 Listening…' : '🎧 Tap to hear the word'}</span>
         </button>
 
         <div className="attempt-dots" aria-label={`${dotsLeft} of 3 attempts remaining`}>
@@ -299,15 +273,15 @@ export default function SpellingStage({
         ))}
       </div>
 
-      {/* Phase messages */}
+      {/* Phase feedback */}
       {phase === 'solved' && (
-        <p className="spell-feedback spell-correct">Correct!</p>
+        <p className="spell-feedback spell-correct">Correct! ✓</p>
       )}
       {phase === 'failed' && (
         <p className="spell-feedback spell-failed">The correct spelling is shown above.</p>
       )}
 
-      {/* Check + hint (hidden once solved or failed) */}
+      {/* Check + hint */}
       {showControls && (
         <div className="spell-actions">
           <button
@@ -326,28 +300,25 @@ export default function SpellingStage({
         </div>
       )}
 
-      {/* Buttons after all attempts exhausted */}
+      {/* Continue after failed */}
       {phase === 'failed' && (
-        <div className="failed-actions">
-          <button className="btn-home" onClick={onHome}>Home</button>
-          <button
-            className="btn-next"
-            onClick={() =>
-              finish({
-                correct:    false,
-                attempts:   attemptsRef.current,
-                hintsUsed:  hintsUsedRef.current,
-                points:     0,
-                secondsLeft,
-              })
-            }
-          >
-            {isLastWord ? 'See Results' : 'Next Word'}
-          </button>
-        </div>
+        <button
+          className="btn-continue"
+          onClick={() =>
+            finish({
+              correct:    false,
+              attempts:   attemptsRef.current,
+              hintsUsed:  hintsUsedRef.current,
+              points:     0,
+              secondsLeft,
+            })
+          }
+        >
+          Continue →
+        </button>
       )}
 
-      {/* Virtual keyboard (keep mounted during result phase to avoid layout shift) */}
+      {/* Virtual keyboard */}
       {showControls && (
         <Keyboard onKey={handleKey} onBackspace={handleBackspace} />
       )}
@@ -357,7 +328,7 @@ export default function SpellingStage({
 
 function SpeakerIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
       <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
     </svg>
   );

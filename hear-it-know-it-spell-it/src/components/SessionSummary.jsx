@@ -33,6 +33,10 @@ export default function SessionSummary({ results, grade, onPlayAgain, onChooseGr
   return (
     <div className="summary">
 
+      <div className="page-top-bar">
+        <button className="page-home-btn" onClick={onChooseGrade}>⌂ Home</button>
+      </div>
+
       {/* ── Score / Stars ─────────────────────────────────────── */}
       <div className="sum-hero">
         <p className="sum-grade-label">Grade {grade} · Complete</p>
