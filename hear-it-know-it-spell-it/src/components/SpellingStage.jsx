@@ -92,18 +92,16 @@ export default function SpellingStage({
     onExpire: handleExpire,
   });
 
+  // Start timer immediately on mount
+  useEffect(() => { startTimer(); }, [startTimer]);
+
   const { speak, isSpeaking } = useSpeech(wordData.word);
-  const timerStartedRef = useRef(false);
   const [heardOnce, setHeardOnce] = useState(false);
 
   const triggerSpeak = useCallback(() => {
     speak();
     setHeardOnce(true);
-    if (!timerStartedRef.current) {
-      timerStartedRef.current = true;
-      startTimer();
-    }
-  }, [speak, startTimer]);
+  }, [speak]);
 
   // ── Input handlers ────────────────────────────────────────────────────────
 

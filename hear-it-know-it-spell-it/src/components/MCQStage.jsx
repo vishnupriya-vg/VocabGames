@@ -34,13 +34,12 @@ export default function MCQStage({ wordData, onComplete }) {
   const [answered, setAnswered]             = useState(false);
   const [heardOnce, setHeardOnce]           = useState(false);
 
-  const hintsUsedRef    = useRef(0);
-  const completedRef    = useRef(false);
-  const timerStartedRef = useRef(false);
+  const hintsUsedRef     = useRef(0);
+  const completedRef     = useRef(false);
   const pendingResultRef = useRef(null);
 
   useEffect(() => {
-    completedRef.current = false;          // reset on every (re)mount, including Strict Mode remount
+    completedRef.current = false;   // reset on every (re)mount, including Strict Mode remount
     return () => { completedRef.current = true; };
   }, []);
 
@@ -65,16 +64,15 @@ export default function MCQStage({ wordData, onComplete }) {
     onExpire: handleExpire,
   });
 
+  // Start timer immediately on mount
+  useEffect(() => { startTimer(); }, [startTimer]);
+
   const { speak, isSpeaking } = useSpeech(wordData.word);
 
   const triggerSpeak = useCallback(() => {
     speak();
     setHeardOnce(true);
-    if (!timerStartedRef.current) {
-      timerStartedRef.current = true;
-      startTimer();
-    }
-  }, [speak, startTimer]);
+  }, [speak]);
 
   function handleSelect(idx) {
     if (answered || answerRevealed || idx === eliminatedIdx) return;
