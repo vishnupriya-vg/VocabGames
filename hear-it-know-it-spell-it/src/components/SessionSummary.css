@@ -1,0 +1,236 @@
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 28px 16px 48px;
+}
+
+/* ── Hero: score + stars ──────────────────────────────────── */
+
+.sum-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 32px 24px;
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+}
+
+.sum-grade-label {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
+}
+
+.sum-score {
+  font-size: clamp(52px, 12vw, 80px);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.sum-stars {
+  display: flex;
+  gap: 6px;
+}
+
+.star-svg {
+  width: 48px;
+  height: 48px;
+  animation: star-pop 0.4s ease backwards;
+}
+
+.star-on  path { fill: #facc15; stroke: #f59e0b; stroke-width: 0.5; }
+.star-off path { fill: #f3f4f6; stroke: #d1d5db; stroke-width: 1.5; }
+
+@keyframes star-pop {
+  from { transform: scale(0) rotate(-30deg); opacity: 0; }
+  60%  { transform: scale(1.2)  rotate(5deg); }
+  to   { transform: scale(1)    rotate(0deg); opacity: 1; }
+}
+
+.sum-streak-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  background: linear-gradient(135deg, #7c3aed, #4361ee);
+  color: #fff;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sum-calc {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ── Action buttons ───────────────────────────────────────── */
+
+.sum-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.sum-btn-primary {
+  padding: 14px 32px;
+  min-height: 52px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 100px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.sum-btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.sum-btn-secondary {
+  padding: 14px 28px;
+  min-height: 52px;
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  border-radius: 100px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.sum-btn-secondary:hover {
+  background: var(--primary-light);
+  transform: translateY(-2px);
+}
+
+/* ── Word table ───────────────────────────────────────────── */
+
+.sum-table-wrap {
+  overflow-x: auto;
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.sum-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 720px;
+}
+
+.sum-table thead th {
+  background: var(--primary);
+  color: #fff;
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+}
+
+.sum-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+
+.sum-table tbody tr:last-child { border-bottom: none; }
+.sum-table tbody tr:hover { background: #fafafa; }
+
+.sum-table td {
+  padding: 12px 14px;
+  vertical-align: top;
+  line-height: 1.45;
+}
+
+/* Row tints by outcome */
+.sum-row-perfect  { background: #f0fdf4; }
+.sum-row-partial  { background: #fffbeb; }
+.sum-row-missed   { background: #fef2f2; }
+
+/* Column widths */
+.col-word  { width: 90px;  }
+.col-def   { width: 210px; }
+.col-ex    { width: 230px; }
+.col-mcq   { width: 90px;  }
+.col-spell { width: 100px; }
+.col-out   { width: 80px;  }
+
+.td-word {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 15px;
+}
+
+.td-example em {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* ── Result pills (MCQ / Spelling cells) ──────────────────── */
+
+.result-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pill-ok   { color: var(--success); }
+.pill-fail { color: var(--error); }
+
+.pill-sub {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.na { color: var(--text-secondary); font-size: 13px; }
+
+/* ── Outcome badges ───────────────────────────────────────── */
+
+.outcome-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge-perfect {
+  background: var(--success-light);
+  color: #14532d;
+}
+
+.badge-partial {
+  background: var(--warning-light);
+  color: #78350f;
+}
+
+.badge-missed {
+  background: var(--error-light);
+  color: #7f1d1d;
+}

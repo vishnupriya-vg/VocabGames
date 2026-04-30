@@ -1,0 +1,33 @@
+/* Anchored to the viewport centre; particles burst outward from that point */
+.confetti-root {
+  position: fixed;
+  top: 42%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: visible;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: center;
+  opacity: 0;
+  animation: confetti-burst ease-out forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes confetti-burst {
+  0%   {
+    transform: translate(0, 0) rotate(0deg) scale(0.4);
+    opacity: 1;
+  }
+  30%  { opacity: 1; }
+  100% {
+    transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.9);
+    opacity: 0;
+  }
+}
