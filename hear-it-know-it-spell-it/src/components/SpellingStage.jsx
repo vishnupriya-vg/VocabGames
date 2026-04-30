@@ -47,17 +47,17 @@ export default function SpellingStage({
   const [locked, setLocked]         = useState(() => new Set());
   const [attempts, setAttempts]     = useState(0);
   const [evalResult, setEvalResult] = useState(null);
+  // phases: 'typing' | 'result' | 'solved' | 'failed'
   const [phase, setPhase]           = useState('typing');
   const [hintsUsed, setHintsUsed]   = useState(0);
 
-  const phaseRef       = useRef('typing');
-  const attemptsRef    = useRef(0);
-  const hintsUsedRef   = useRef(0);
-  const lockedRef      = useRef(new Set());
-  const completedRef   = useRef(false);
-  const resultTimerRef = useRef(null);
-  const solveTimerRef  = useRef(null);
-  const handlersRef    = useRef(null);
+  const phaseRef      = useRef('typing');
+  const attemptsRef   = useRef(0);
+  const hintsUsedRef  = useRef(0);
+  const lockedRef     = useRef(new Set());
+  const completedRef  = useRef(false);
+  const solveTimerRef = useRef(null);
+  const handlersRef   = useRef(null);
 
   function setPhaseSync(p)    { phaseRef.current = p;     setPhase(p); }
   function setAttemptsSync(a) { attemptsRef.current = a;  setAttempts(a); }
@@ -69,9 +69,8 @@ export default function SpellingStage({
   }
 
   useEffect(() => {
-    completedRef.current = false;          // reset on every (re)mount, including Strict Mode remount
+    completedRef.current = false;   // reset on every (re)mount, including Strict Mode remount
     return () => {
-      clearTimeout(resultTimerRef.current);
       clearTimeout(solveTimerRef.current);
       completedRef.current = true;
     };
@@ -86,7 +85,6 @@ export default function SpellingStage({
   function handleExpire() {
     const p = phaseRef.current;
     if (p !== 'typing' && p !== 'result') return;
-    clearTimeout(resultTimerRef.current);
     setPhaseSync('failed');
   }
 
@@ -157,21 +155,35 @@ export default function SpellingStage({
         });
       }, 1200);
     } else {
+      // Increment attempt counter immediately so the dot display updates
       const newAttempts = attemptsRef.current + 1;
       setAttemptsSync(newAttempts);
+      // Stay in 'result' — colours remain until the student clicks Retry or See Answer
       setPhaseSync('result');
-
-      resultTimerRef.current = setTimeout(() => {
-        if (newAttempts >= 3) {
-          stopTimer();
-          setPhaseSync('failed');
-        } else {
-          setLetters(prev => prev.map((l, i) => lockedRef.current.has(i) ? l : ''));
-          setEvalResult(null);
-          setPhaseSync('typing');
-        }
-      }, 1500);
     }
+  }
+
+  // Lock correct-position cells, clear the rest, return to typing
+  function handleRetry() {
+    if (completedRef.current) return;
+
+    // Lock any cell where this attempt was correct
+    const nextLocked = new Set(lockedRef.current);
+    if (evalResult) {
+      evalResult.forEach((r, i) => { if (r === 'correct') nextLocked.add(i); });
+    }
+    syncLock(nextLocked);
+
+    // Clear non-locked cells and reset eval colours
+    setLetters(prev => prev.map((l, i) => nextLocked.has(i) ? l : ''));
+    setEvalResult(null);
+    setPhaseSync('typing');
+  }
+
+  // Transition to the reveal animation when all attempts exhausted
+  function handleShowAnswer() {
+    stopTimer();
+    setPhaseSync('failed');
   }
 
   function handleSpellingHint() {
@@ -209,20 +221,23 @@ export default function SpellingStage({
 
   // ── Derived values ────────────────────────────────────────────────────────
 
-  const allFilled  = letters.every(l => l !== '');
-  const dotsLeft   = Math.max(0, 3 - attempts);
-  const timerPct   = (secondsLeft / 60) * 100;
-  const timerClass = secondsLeft <= 10 ? 'danger' : secondsLeft <= 20 ? 'warning' : '';
-  const canHint    = phase === 'typing' && locked.size < n;
-  const showControls = phase !== 'solved' && phase !== 'failed';
-
-  const spellOutcome = phase === 'solved' ? 'correct' : phase === 'failed' ? 'wrong' : null;
+  const allFilled          = letters.every(l => l !== '');
+  const dotsLeft           = Math.max(0, 3 - attempts);
+  const attemptsExhausted  = attempts >= 3;
+  const timerPct           = (secondsLeft / 60) * 100;
+  const timerClass         = secondsLeft <= 10 ? 'danger' : secondsLeft <= 20 ? 'warning' : '';
+  const canHint            = phase === 'typing' && locked.size < n;
+  const spellOutcome       = phase === 'solved' ? 'correct' : phase === 'failed' ? 'wrong' : null;
 
   function getCellClass(i) {
     const parts = [];
-    if (locked.has(i))                           parts.push('cell-locked');
-    else if (letters[i] && phase === 'typing')   parts.push('cell-filled');
+    if (locked.has(i)) {
+      parts.push('cell-locked');
+    } else if (letters[i] && phase === 'typing') {
+      parts.push('cell-filled');
+    }
 
+    // Show eval colours in 'result' and 'solved' phases
     if ((phase === 'result' || phase === 'solved') && evalResult) {
       parts.push(`cell-${evalResult[i]}`);
     }
@@ -277,7 +292,22 @@ export default function SpellingStage({
         ))}
       </div>
 
-      {/* Phase feedback */}
+      {/* Colour legend — visible while actively playing */}
+      {(phase === 'typing' || phase === 'result') && (
+        <div className="spell-legend">
+          <span className="legend-item">
+            <span className="legend-dot dot-correct" />Correct position
+          </span>
+          <span className="legend-item">
+            <span className="legend-dot dot-present" />Wrong position
+          </span>
+          <span className="legend-item">
+            <span className="legend-dot dot-absent" />Not in word
+          </span>
+        </div>
+      )}
+
+      {/* Phase feedback messages */}
       {phase === 'solved' && (
         <p className="spell-feedback spell-correct">Correct! ✓</p>
       )}
@@ -285,12 +315,12 @@ export default function SpellingStage({
         <p className="spell-feedback spell-failed">The correct spelling is shown above.</p>
       )}
 
-      {/* Check + hint */}
-      {showControls && (
+      {/* Typing controls: Check + hint */}
+      {phase === 'typing' && (
         <div className="spell-actions">
           <button
             className="check-btn"
-            disabled={!allFilled || phase !== 'typing'}
+            disabled={!allFilled}
             onClick={handleCheck}
           >
             Check
@@ -304,7 +334,22 @@ export default function SpellingStage({
         </div>
       )}
 
-      {/* Home + Continue after failed */}
+      {/* Result controls: Retry or See Answer */}
+      {phase === 'result' && (
+        <div className="result-actions">
+          {!attemptsExhausted ? (
+            <button className="retry-btn" onClick={handleRetry}>
+              Try Again
+            </button>
+          ) : (
+            <button className="see-answer-btn" onClick={handleShowAnswer}>
+              See Answer →
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Failed controls: Home + Continue */}
       {phase === 'failed' && (
         <div className="failed-actions">
           <button className="spell-home-btn" onClick={onHome}>⌂ Home</button>
@@ -325,8 +370,8 @@ export default function SpellingStage({
         </div>
       )}
 
-      {/* Virtual keyboard */}
-      {showControls && (
+      {/* Virtual keyboard — only while typing */}
+      {phase === 'typing' && (
         <Keyboard onKey={handleKey} onBackspace={handleBackspace} />
       )}
     </div>
