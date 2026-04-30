@@ -72,4 +72,4 @@ VocabGames/
 | Word Game 3 | https://vishnupriya-vg.github.io/word-game-3/ |
 | Word Search Puzzle | https://vishnupriya-vg.github.io/word-search-puzzle/word-search.html |
 | Transformation Path Game | https://vishnupriya-vg.github.io/transformation-path-game/ |
-| | Hear It · Know It · Spell It | https://hear-it-know-it-spell-it.surge.sh |
+| Hear It · Know It · Spell It | https://hear-it-know-it-spell-it.surge.sh |
