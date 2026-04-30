@@ -38,6 +38,7 @@ export default function SpellingStage({
   wordData,
   mcqOutcome,
   onComplete,
+  onHome,
 }) {
   const target = wordData.word.toUpperCase();
   const n = target.length;
@@ -67,10 +68,13 @@ export default function SpellingStage({
     setLocked(new Set(nextLocked));
   }
 
-  useEffect(() => () => {
-    clearTimeout(resultTimerRef.current);
-    clearTimeout(solveTimerRef.current);
-    completedRef.current = true;
+  useEffect(() => {
+    completedRef.current = false;          // reset on every (re)mount, including Strict Mode remount
+    return () => {
+      clearTimeout(resultTimerRef.current);
+      clearTimeout(solveTimerRef.current);
+      completedRef.current = true;
+    };
   }, []);
 
   function finish(result) {
@@ -300,22 +304,25 @@ export default function SpellingStage({
         </div>
       )}
 
-      {/* Continue after failed */}
+      {/* Home + Continue after failed */}
       {phase === 'failed' && (
-        <button
-          className="btn-continue"
-          onClick={() =>
-            finish({
-              correct:    false,
-              attempts:   attemptsRef.current,
-              hintsUsed:  hintsUsedRef.current,
-              points:     0,
-              secondsLeft,
-            })
-          }
-        >
-          Continue →
-        </button>
+        <div className="failed-actions">
+          <button className="spell-home-btn" onClick={onHome}>⌂ Home</button>
+          <button
+            className="btn-continue"
+            onClick={() =>
+              finish({
+                correct:    false,
+                attempts:   attemptsRef.current,
+                hintsUsed:  hintsUsedRef.current,
+                points:     0,
+                secondsLeft,
+              })
+            }
+          >
+            Continue →
+          </button>
+        </div>
       )}
 
       {/* Virtual keyboard */}

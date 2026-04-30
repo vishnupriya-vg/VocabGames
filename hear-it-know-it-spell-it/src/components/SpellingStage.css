@@ -191,10 +191,38 @@
   background: var(--warning-light);
 }
 
+/* ── Failed-state action row ─────────────────────────────── */
+
+.failed-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.spell-home-btn {
+  padding: 0 18px;
+  min-height: 54px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 2px solid var(--border);
+  border-radius: 100px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.spell-home-btn:hover {
+  border-color: var(--text-secondary);
+  color: var(--text);
+}
+
 /* ── Continue button (after failed) ──────────────────────── */
 
 .btn-continue {
-  width: 100%;
+  flex: 1;
   min-height: 54px;
   background: var(--primary);
   color: #fff;

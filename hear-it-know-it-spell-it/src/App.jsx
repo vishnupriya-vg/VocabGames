@@ -188,6 +188,7 @@ export default function App() {
           wordData={currentWord}
           mcqOutcome={currentMcqOutcome}
           onComplete={handleSpellingComplete}
+          onHome={handleChooseGrade}
         />
       )}
 

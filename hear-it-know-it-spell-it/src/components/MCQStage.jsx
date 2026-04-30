@@ -39,7 +39,10 @@ export default function MCQStage({ wordData, onComplete }) {
   const timerStartedRef = useRef(false);
   const pendingResultRef = useRef(null);
 
-  useEffect(() => () => { completedRef.current = true; }, []);
+  useEffect(() => {
+    completedRef.current = false;          // reset on every (re)mount, including Strict Mode remount
+    return () => { completedRef.current = true; };
+  }, []);
 
   function finish(result) {
     if (completedRef.current) return;
