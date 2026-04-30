@@ -14,6 +14,7 @@ A collection of vocabulary and word games built for learning. Each game is self-
 | [`word-game-3/`](./word-game-3/) | Word Game 3 | HTML + JavaScript | Standalone vocabulary game |
 | [`word-search-puzzle/`](./word-search-puzzle/) | Word Search Puzzle | HTML + JavaScript | Interactive word search puzzle game |
 | [`transformation-path-game/`](./transformation-path-game/) | Transformation Path Game | React + Vite | Word transformation challenge game |
+| [`hear-it-know-it-spell-it/`](./hear-it-know-it-spell-it/) | Hear It · Know It · Spell It | React + Vite | Audio-based vocabulary game — hear a word, identify its meaning, spell it out. Grades 3–8. |
 
 ---
 
@@ -36,18 +37,26 @@ npm install
 npm run dev
 ```
 
+### hear-it-know-it-spell-it (React app)
+```bash
+cd hear-it-know-it-spell-it
+npm install
+npm run dev
+```
+
 ---
 
 ## Repository Structure
 
 ```
 VocabGames/
-├── vocabgames/              # Word Sprout - full React vocab app
-├── word-game-1/             # HTML vocabulary quiz prototype
-├── word-game-2/             # HTML vocabulary quiz v2
-├── word-game-3/             # HTML vocabulary game
-├── word-search-puzzle/      # HTML word search puzzle
-└── transformation-path-game/ # React word transformation game
+├── vocabgames/                  # Word Sprout - full React vocab app
+├── word-game-1/                 # HTML vocabulary quiz prototype
+├── word-game-2/                 # HTML vocabulary quiz v2
+├── word-game-3/                 # HTML vocabulary game
+├── word-search-puzzle/          # HTML word search puzzle
+├── transformation-path-game/    # React word transformation game
+└── hear-it-know-it-spell-it/   # React audio vocabulary game (Grades 3–8)
 ```
 
 ---
@@ -57,4 +66,10 @@ VocabGames/
 | Game | Live URL |
 |------|----------|
 | Word Sprout (full) | https://vocabgames.surge.sh |
-| Word Match (standalone) | https://wordmatch-vocabgames.surge.sh |
+| Word Match (standalone) | https://wordsprout-match.surge.sh |
+| Word Game 1 | https://vishnupriya-vg.github.io/Word-Game-1/ |
+| Word Game 2 | https://vishnupriya-vg.github.io/Word-Game-2/ |
+| Word Game 3 | https://vishnupriya-vg.github.io/word-game-3/ |
+| Word Search Puzzle | https://vishnupriya-vg.github.io/word-search-puzzle/word-search.html |
+| Transformation Path Game | https://vishnupriya-vg.github.io/transformation-path-game/ |
+| Hear It · Know It · Spell It | Coming soon |
