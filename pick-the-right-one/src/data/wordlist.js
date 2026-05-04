@@ -1,5 +1,6 @@
 // src/data/wordlist.js
 // 30 words — 5 per grade, grades 3–8. No word repeats across any grade.
+// Correct answer is 'A' for 15 entries and 'B' for 15 entries (shuffled).
 
 export const WORDS = [
   // ─── Grade 3 ───────────────────────────────────────────────────────────────
@@ -10,10 +11,10 @@ export const WORDS = [
     partOfSpeech: 'adverb',
     definition: 'used to say what is really true, especially when it differs from what was expected',
     sentenceA: 'I thought the test would be hard, but it was actually pretty easy.',
-    sentenceB: 'She actually walked to school every single day that week.',
+    sentenceB: 'She actually ate her breakfast, lunch, and dinner every single day of the week.',
     correct: 'A',
     explanation:
-      '"Actually" signals a contrast with a prior expectation; B uses it as a filler with no contrast implied.',
+      '"Actually" signals that something is true despite what was expected; eating three meals a day is entirely routine — there is no expectation to contrast, so "actually" has no purpose here.',
   },
   {
     id: 'g3_appear',
@@ -21,11 +22,11 @@ export const WORDS = [
     word: 'appear',
     partOfSpeech: 'verb',
     definition: 'to come into view; to become visible',
-    sentenceA: 'Tiny green buds began to appear on the branches as spring arrived.',
-    sentenceB: 'She appeared her new sketchbook to show her friends at lunch.',
-    correct: 'A',
+    sentenceA: 'She appeared her new sketchbook to show her friends at lunch.',
+    sentenceB: 'Tiny green buds began to appear on the branches as spring arrived.',
+    correct: 'B',
     explanation:
-      '"Appear" is intransitive and means to come into view on its own; it cannot take a direct object as B incorrectly uses it.',
+      '"Appear" is intransitive and means to come into view on its own; it cannot take a direct object — "appeared her sketchbook" treats it as a transitive verb, which is incorrect.',
   },
   {
     id: 'g3_brave',
@@ -34,10 +35,10 @@ export const WORDS = [
     partOfSpeech: 'adjective',
     definition: 'ready to face danger or difficulty without showing fear',
     sentenceA: 'The brave firefighter ran into the burning building to rescue the trapped child.',
-    sentenceB: 'She was brave enough to eat all of her vegetables at dinner that evening.',
+    sentenceB: 'The brave sunshine finally came out from behind the clouds after the storm.',
     correct: 'A',
     explanation:
-      '"Brave" means showing courage in the face of real danger; choosing to eat vegetables involves preference, not the courage required to face genuine risk.',
+      '"Brave" means showing courage in the face of real danger; sunshine is not a living thing capable of fear or courage.',
   },
   {
     id: 'g3_gentle',
@@ -45,9 +46,9 @@ export const WORDS = [
     word: 'gentle',
     partOfSpeech: 'adjective',
     definition: 'soft and careful, not rough or violent',
-    sentenceA: 'The nurse had a gentle touch as she carefully cleaned and bandaged the wound.',
-    sentenceB: 'He gave the door a gentle slam so it would close all the way.',
-    correct: 'A',
+    sentenceA: 'He gave the door a gentle slam so it would close all the way.',
+    sentenceB: 'The nurse had a gentle touch as she carefully cleaned and bandaged the wound.',
+    correct: 'B',
     explanation:
       '"Gentle" means soft and careful; a "slam" is by definition forceful, making "gentle slam" a direct contradiction.',
   },
@@ -71,11 +72,11 @@ export const WORDS = [
     word: 'significant',
     partOfSpeech: 'adjective',
     definition: 'important or meaningful enough to be worth noting',
-    sentenceA: "Winning the championship was a significant moment in the school's history.",
-    sentenceB: 'She wore a significant coat to the winter carnival to stay warm.',
-    correct: 'A',
+    sentenceA: 'She used a significant eraser to fix all the mistakes on her worksheet.',
+    sentenceB: "Winning the championship was a significant moment in the school's history.",
+    correct: 'B',
     explanation:
-      '"Significant" means having great importance or meaning; a coat can be warm or stylish, but "significant" describes impact and importance, not physical objects like clothing.',
+      '"Significant" means having great importance or meaning; an eraser is described by its size or quality — not by its significance.',
   },
   {
     id: 'g4_immediate',
@@ -84,10 +85,10 @@ export const WORDS = [
     partOfSpeech: 'adjective',
     definition: 'happening or needed at once, without delay',
     sentenceA: 'The deep cut required immediate attention from the school nurse.',
-    sentenceB: 'She gave an immediate glance at the board before writing down the answer.',
+    sentenceB: 'She took immediate steps to get fit, going for a short walk only once a month.',
     correct: 'A',
     explanation:
-      '"Immediate" means requiring urgent action without any delay; glancing at a board is a quick action but carries no sense of urgency.',
+      '"Immediate" means happening right away without delay; going for a walk once a month is gradual and infrequent — the opposite of immediate action.',
   },
   {
     id: 'g4_abundant',
@@ -95,11 +96,11 @@ export const WORDS = [
     word: 'abundant',
     partOfSpeech: 'adjective',
     definition: 'existing in large quantities; more than enough',
-    sentenceA: 'After weeks of spring rain, wildflowers were abundant along the hillside.',
-    sentenceB: 'She was abundant with her time, arriving at every event exactly on schedule.',
-    correct: 'A',
+    sentenceA: 'She was abundant with her time, arriving at every event exactly on schedule.',
+    sentenceB: 'After weeks of spring rain, wildflowers were abundant along the hillside.',
+    correct: 'B',
     explanation:
-      '"Abundant" means existing in large quantities; being punctual is being "prompt" — "abundant with time" is not a valid expression because the word describes quantities, not behaviour.',
+      '"Abundant" means existing in large quantities; being punctual is being "prompt" — "abundant with time" is not standard because the word describes quantities, not behaviour.',
   },
   {
     id: 'g4_capable',
@@ -108,10 +109,10 @@ export const WORDS = [
     partOfSpeech: 'adjective',
     definition: 'having the ability or skill to do something',
     sentenceA: 'She proved she was capable of leading the group when the teacher stepped out.',
-    sentenceB: 'The storage box was capable enough to hold all the books on the shelf.',
+    sentenceB: 'The large capable box held all of the class supplies neatly on the shelf.',
     correct: 'A',
     explanation:
-      '"Capable" describes a person\'s ability to perform a task requiring skill; for objects you say "large enough" or "sturdy enough" — "capable" implies intentional human agency.',
+      '"Capable" describes a person or thing with the specific skill to perform a task; a box is described as "large" or "sturdy" — "capable" implies intentional agency, not physical dimension.',
   },
   {
     id: 'g4_essential',
@@ -119,11 +120,11 @@ export const WORDS = [
     word: 'essential',
     partOfSpeech: 'adjective',
     definition: 'absolutely necessary; something that cannot be done without',
-    sentenceA: 'Water is essential for all living things to survive.',
-    sentenceB: 'She packed her essential suitcase the night before the school trip.',
-    correct: 'A',
+    sentenceA: 'She bought a new essential pencil case because it came in her favourite shade of purple.',
+    sentenceB: 'Water is essential for all living things to survive.',
+    correct: 'B',
     explanation:
-      '"Essential" means absolutely necessary; a suitcase can be "packed" or "ready," but the suitcase itself is not what is essential — it is a container, not a necessity.',
+      '"Essential" means absolutely necessary; buying a pencil case for its colour is a personal preference, not a matter of necessity.',
   },
 
   // ─── Grade 5 ───────────────────────────────────────────────────────────────
@@ -145,11 +146,11 @@ export const WORDS = [
     word: 'conflict',
     partOfSpeech: 'noun',
     definition: 'a serious disagreement or struggle between opposing forces or people',
-    sentenceA: 'The conflict between the two characters made the story more tense and compelling.',
-    sentenceB: 'She solved the conflict puzzle in record time during the maths competition.',
-    correct: 'A',
+    sentenceA: 'She solved every conflict on the test paper quickly and moved on to the next section.',
+    sentenceB: 'The conflict between the two characters made the story more tense and compelling.',
+    correct: 'B',
     explanation:
-      '"Conflict" means a struggle between opposing forces; a puzzle is a challenge, not a conflict, which requires opposing parties.',
+      '"Conflict" means a serious struggle between opposing forces; test questions are "problems" or "exercises" — they require solving, but they are not conflicts.',
   },
   {
     id: 'g5_evident',
@@ -161,7 +162,7 @@ export const WORDS = [
     sentenceB: 'She wore an evident badge so that the judges could clearly see her name.',
     correct: 'A',
     explanation:
-      '"Evident" means clearly understood from observation or evidence; a badge is "visible" or "legible" — "evident" describes conclusions drawn from context, not physical objects.',
+      '"Evident" means clearly understood from observation; a badge is "visible" or "legible" — "evident" describes conclusions drawn from context, not physical objects.',
   },
   {
     id: 'g5_authentic',
@@ -169,11 +170,11 @@ export const WORDS = [
     word: 'authentic',
     partOfSpeech: 'adjective',
     definition: 'genuinely original and not a copy or imitation',
-    sentenceA: 'The museum displayed an authentic letter written by Abraham Lincoln in 1863.',
-    sentenceB: 'She gave an authentic try at winning the spelling bee by practising each evening.',
-    correct: 'A',
+    sentenceA: 'She felt authentic about joining the school choir and went to every rehearsal.',
+    sentenceB: 'The museum displayed an authentic letter written by Abraham Lincoln in 1863.',
+    correct: 'B',
     explanation:
-      '"Authentic" means genuinely original and not a copy; it applies to objects or sources — an effort is better described as "genuine" or "sincere."',
+      '"Authentic" describes whether something is genuinely original and not a copy; it cannot describe how a person feels about a decision.',
   },
   {
     id: 'g5_elaborate',
@@ -195,9 +196,9 @@ export const WORDS = [
     word: 'advocate',
     partOfSpeech: 'verb',
     definition: 'to publicly support or recommend a particular cause or policy',
-    sentenceA: 'The organisation advocates for stricter pollution controls to protect public health.',
-    sentenceB: 'She advocated her way through the crowded hallway to reach her next class on time.',
-    correct: 'A',
+    sentenceA: 'She advocated her way through the crowded hallway to reach her next class on time.',
+    sentenceB: 'The organisation advocates for stricter pollution controls to protect public health.',
+    correct: 'B',
     explanation:
       '"Advocate" means to publicly support a cause; moving through a crowd is "pushing" or "making your way" — advocacy is about speaking up, not physical movement.',
   },
@@ -219,11 +220,11 @@ export const WORDS = [
     word: 'ethical',
     partOfSpeech: 'adjective',
     definition: 'relating to moral principles; following rules of right conduct',
-    sentenceA: "A doctor who shares a patient's private records without consent is not acting ethically.",
-    sentenceB: 'She wrote an ethical essay with a strong introduction, clear arguments, and a solid conclusion.',
-    correct: 'A',
+    sentenceA: 'She wrote an ethical essay with a strong introduction, clear arguments, and a solid conclusion.',
+    sentenceB: "A doctor who shares a patient's private records without consent is not acting ethically.",
+    correct: 'B',
     explanation:
-      '"Ethical" relates to moral principles and right conduct; essay structure is "well-organised" or "coherent" — structure has nothing to do with ethics.',
+      '"Ethical" relates to moral principles and right conduct; essay structure is "well-organised" — structure has nothing to do with ethics.',
   },
   {
     id: 'g6_eloquent',
@@ -243,9 +244,9 @@ export const WORDS = [
     word: 'feasible',
     partOfSpeech: 'adjective',
     definition: 'possible to do easily or conveniently; practical',
-    sentenceA: 'Building a rooftop garden is feasible if the budget and structural support allow it.',
-    sentenceB: 'She was feasible about completing her project on time despite the heavy workload.',
-    correct: 'A',
+    sentenceA: 'She was feasible about completing her project on time despite the heavy workload.',
+    sentenceB: 'Building a rooftop garden is feasible if the budget and structural support allow it.',
+    correct: 'B',
     explanation:
       '"Feasible" means practically possible and achievable; people can be "confident" or "optimistic" — "feasible" applies to plans and ideas, not to people\'s attitudes.',
   },
@@ -258,10 +259,10 @@ export const WORDS = [
     partOfSpeech: 'adjective',
     definition: 'existing as an idea rather than as a physical or concrete thing',
     sentenceA: 'Justice is an abstract concept — you can sense its absence but cannot hold it in your hand.',
-    sentenceB: 'She drew an abstract line beneath the most important sentence in her revision notes.',
+    sentenceB: "The coach gave abstract instructions before the match, listing each player's exact position and role.",
     correct: 'A',
     explanation:
-      '"Abstract" means existing as an idea rather than a concrete thing; underlining is a physical act and the line would be "straight" or "neat," not abstract.',
+      '"Abstract" means vague and conceptual rather than concrete; listing exact positions and roles is specific and precise — the opposite of abstract.',
   },
   {
     id: 'g7_arbitrary',
@@ -269,11 +270,11 @@ export const WORDS = [
     word: 'arbitrary',
     partOfSpeech: 'adjective',
     definition: 'based on random choice or personal whim rather than any reason or system',
-    sentenceA: 'The penalty seemed arbitrary — no clear rule had been broken and no explanation was given.',
-    sentenceB: 'She applied an arbitrary level of effort to ensure she won the regional science competition.',
-    correct: 'A',
+    sentenceA: 'She applied an arbitrary level of effort to ensure she won the regional science competition.',
+    sentenceB: 'The penalty seemed arbitrary — no clear rule had been broken and no explanation was given.',
+    correct: 'B',
     explanation:
-      '"Arbitrary" means based on random whim rather than reason; deliberately working to win a competition is purposeful, the opposite of arbitrary.',
+      '"Arbitrary" means based on random whim rather than reason; deliberately applying effort to win a competition is purposeful, the opposite of arbitrary.',
   },
   {
     id: 'g7_coherent',
@@ -293,11 +294,11 @@ export const WORDS = [
     word: 'dormant',
     partOfSpeech: 'adjective',
     definition: 'temporarily inactive or in a resting state; not currently active',
-    sentenceA: 'The volcano had been dormant for over two centuries, showing no signs of activity.',
-    sentenceB: 'She gave a dormant reply, full of energy and enthusiasm for the new proposal.',
-    correct: 'A',
+    sentenceA: 'She gave a dormant reply, full of energy and enthusiasm for the new proposal.',
+    sentenceB: 'The volcano had been dormant for over two centuries, showing no signs of activity.',
+    correct: 'B',
     explanation:
-      '"Dormant" means temporarily inactive or in a resting state; a reply described as full of energy and enthusiasm is the direct opposite of dormant.',
+      '"Dormant" means temporarily inactive or in a resting state; a reply full of energy and enthusiasm is the direct opposite of dormant.',
   },
   {
     id: 'g7_ephemeral',
@@ -309,7 +310,7 @@ export const WORDS = [
     sentenceB: 'She delivered an ephemeral performance that critics are still discussing twenty years later.',
     correct: 'A',
     explanation:
-      '"Ephemeral" means lasting for a very short time; a performance still discussed two decades later has had lasting impact — the opposite of ephemeral.',
+      '"Ephemeral" means lasting for a very short time; a performance still discussed twenty years later has had lasting impact — the opposite of ephemeral.',
   },
 
   // ─── Grade 8 ───────────────────────────────────────────────────────────────
@@ -319,9 +320,9 @@ export const WORDS = [
     word: 'ambiguous',
     partOfSpeech: 'adjective',
     definition: 'open to more than one interpretation; not having one obvious meaning',
-    sentenceA: 'The wording of the contract clause was ambiguous, open to two very different interpretations.',
-    sentenceB: 'She gave an ambiguous answer that left absolutely no room for doubt or misunderstanding.',
-    correct: 'A',
+    sentenceA: 'She gave an ambiguous answer that left absolutely no room for doubt or misunderstanding.',
+    sentenceB: 'The wording of the contract clause was ambiguous, open to two very different interpretations.',
+    correct: 'B',
     explanation:
       '"Ambiguous" means open to more than one interpretation; an answer that leaves no room for doubt is clear and unambiguous — the direct opposite.',
   },
@@ -343,9 +344,9 @@ export const WORDS = [
     word: 'audacious',
     partOfSpeech: 'adjective',
     definition: 'showing a willingness to take bold risks; daring and fearless',
-    sentenceA: "It was audacious of the young architect to publicly challenge the city's entire planning committee.",
-    sentenceB: 'She wore an audacious expression of quiet concentration through the three-hour final examination.',
-    correct: 'A',
+    sentenceA: 'She wore an audacious expression of quiet concentration through the three-hour final examination.',
+    sentenceB: "It was audacious of the young architect to publicly challenge the city's entire planning committee.",
+    correct: 'B',
     explanation:
       '"Audacious" means showing bold, daring confidence in the face of risk; quiet concentration during an exam is focused and careful — not bold or daring.',
   },
@@ -359,7 +360,7 @@ export const WORDS = [
     sentenceB: 'She maintained an austere diet of her favourite foods to stay energised during the athletics season.',
     correct: 'A',
     explanation:
-      '"Austere" means severely plain and self-denying; a diet consisting of one\'s favourite foods is indulgent, the direct opposite of austere.',
+      '"Austere" means severely plain and self-denying; a diet of favourite foods is indulgent, the direct opposite of austere.',
   },
   {
     id: 'g8_benevolent',
@@ -367,9 +368,9 @@ export const WORDS = [
     word: 'benevolent',
     partOfSpeech: 'adjective',
     definition: 'well-meaning and generous; showing kindness and goodwill toward others',
-    sentenceA: 'The benevolent donor quietly funded university scholarships for dozens of students each year.',
-    sentenceB: 'He had a benevolent rivalry with his classmate, determined to outperform her at every opportunity.',
-    correct: 'A',
+    sentenceA: 'He had a benevolent rivalry with his classmate, determined to outperform her at every opportunity.',
+    sentenceB: 'The benevolent donor quietly funded university scholarships for dozens of students each year.',
+    correct: 'B',
     explanation:
       '"Benevolent" means generously kind and well-meaning toward others; a rivalry driven by wanting to outperform someone is competitive, not benevolent.',
   },

@@ -1,0 +1,64 @@
+name: Deploy Pick the Right One
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'pick-the-right-one/**'
+      - '.github/workflows/deploy-pick-the-right-one.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: pick-the-right-one/package-lock.json
+
+      - name: Install dependencies
+        working-directory: pick-the-right-one
+        run: npm ci
+
+      - name: Build
+        working-directory: pick-the-right-one
+        run: npm run build
+
+      - name: Arrange pages output
+        run: |
+          mkdir -p pages/pick-the-right-one
+          cp -r pick-the-right-one/dist/. pages/pick-the-right-one/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
